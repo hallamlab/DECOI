@@ -1,0 +1,45 @@
+name: mock16s-chem-v1
+
+channels:
+  - conda-forge
+  - bioconda
+
+channel_priority: strict
+
+dependencies:
+  - python=3.11
+  - pip
+  - nextflow
+
+  # Pin R rather than accepting the newest release
+  - r-base=4.3
+  - r-remotes
+  - r-jsonlite
+  - r-optparse
+
+  # SparseDOSSA2 Depends
+  - r-ks
+  - r-mvtnorm
+  - r-huge
+  - r-future.apply
+  - r-magrittr
+  - r-truncnorm
+  - r-igraph
+  - r-gmp
+  - r-rmpfr
+
+  # Other workflow dependencies
+  - bioconductor-dada2
+  - biopython
+  - pandas
+  - numpy
+  - scipy
+  - pyyaml
+  - cutadapt
+  - seqkit
+  - pigz
+  - curl
+  - wget
+
+  - pip:
+      - InSilicoSeq

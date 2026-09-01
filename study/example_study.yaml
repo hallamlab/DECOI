@@ -1,0 +1,46 @@
+study_name: mock_airway_chemistry
+
+cohorts:
+  - name: control
+    participant_prefix: CTRL
+    n_participants: 10
+    metadata:
+      Case: Control
+      disease_status: control
+      site: airway
+      lung_status: Healthy
+    participant_metadata_cycle:
+      - batch: plate_1
+      - batch: plate_2
+    sample_types:
+      - name: Bronchial Brush
+        code: BRUSH
+      - name: BAL
+        code: BAL
+  - name: case
+    participant_prefix: CASE
+    n_participants: 10
+    metadata:
+      Case: Cancer
+      disease_status: case
+      site: airway
+    participant_metadata_cycle:
+      - batch: plate_1
+      - batch: plate_2
+    sample_types:
+      - name: Bronchial Brush
+        code: BRUSH
+        metadata:
+          lung_status: TumorSide
+      - name: Bronchial Brush
+        code: BRUSH_CONTRA
+        metadata:
+          lung_status: Contralateral
+      - name: BAL
+        code: BAL
+        metadata:
+          lung_status: TumorSide
+      - name: BAL
+        code: BAL_CONTRA
+        metadata:
+          lung_status: Contralateral

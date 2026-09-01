@@ -1,0 +1,68 @@
+# Private, in-progress documentation
+/docs/
+
+# Nextflow state, logs, work directories, and generated reports
+/.nextflow/
+/.nextflow.log*
+/work/
+/results/
+/trace*.txt
+/timeline*.html
+/report*.html
+/dag*.html
+
+# Local or downloaded datasets
+/data/
+
+# Packaged release/output archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# Python caches, test output, and build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+build/
+dist/
+*.egg-info/
+
+# Python and Conda environments
+.venv/
+venv/
+env/
+.conda/
+conda-env/
+
+# R session and project-local state
+.Rhistory
+.RData
+.Ruserdata
+.Rproj.user/
+
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Editor and operating-system metadata
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Codex/agent-local workspace metadata
+/.agents/
+/.codex/

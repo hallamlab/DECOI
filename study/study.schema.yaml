@@ -1,0 +1,56 @@
+$schema: https://json-schema.org/draft/2020-12/schema
+title: DECOI study request
+type: object
+required: [study_name]
+properties:
+  study_name:
+    type: string
+    minLength: 1
+  groups:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      required: [name, n_samples]
+      properties:
+        name: {type: string, minLength: 1}
+        sample_prefix: {type: string, minLength: 1}
+        n_samples: {type: integer, minimum: 1}
+        metadata:
+          type: object
+          additionalProperties: true
+      additionalProperties: false
+  cohorts:
+    type: array
+    minItems: 1
+    items:
+      type: object
+      required: [name, n_participants, sample_types]
+      properties:
+        name: {type: string, minLength: 1}
+        participant_prefix: {type: string, minLength: 1}
+        n_participants: {type: integer, minimum: 1}
+        metadata: {type: object, additionalProperties: true}
+        participant_metadata_cycle:
+          type: array
+          minItems: 1
+          items: {type: object, additionalProperties: true}
+        sample_types:
+          type: array
+          minItems: 1
+          items:
+            oneOf:
+              - {type: string, minLength: 1}
+              - type: object
+                required: [name]
+                properties:
+                  name: {type: string, minLength: 1}
+                  code: {type: string, minLength: 1}
+                  replicates: {type: integer, minimum: 1}
+                  metadata: {type: object, additionalProperties: true}
+                additionalProperties: false
+      additionalProperties: false
+anyOf:
+  - required: [groups]
+  - required: [cohorts]
+additionalProperties: false

@@ -1,0 +1,99 @@
+seed: 42
+study_design_file: study/example_study.yaml
+
+reference:
+  dada2_silva_fasta: data/silva_nr99_v138.2_toSpecies_trainset.fa.gz
+  output_dir: reference_v4
+  forward_primer: GTGYCAGCMGCCGCGGTAA
+  reverse_primer: GGACTACNVGGGTWTCTAAT
+  min_length: 230
+  max_length: 310
+
+simulation:
+  n_samples: 30
+  n_asvs: 500
+  median_read_depth: 30000
+  sparsedossa_template: Stool
+  selection:
+    domains: [Bacteria, Archaea]
+    min_taxonomy_ranks: 5
+
+chemistry:
+  compounds: [acetone, ethanol, 2_3_butanedione, dimethyl_sulfide, acetate, lactate]
+  drivers_per_compound: 5
+  coefficient_sd: 0.75
+  min_abs_coefficient: 0.9
+  driver_min_prevalence: 0.50
+  noise_sd: 0.25
+  zero_inflation: 0.05
+  log_transform: true
+
+reference_fixtures:
+  mitochondria:
+    enabled: true
+    # Vendored, checksum-pinned human mitochondrial 12S segment for offline reproducibility.
+    source_fasta: fixtures/human_mitochondrial_12s_NC_012920.1_1000-1250.fasta
+    # Alternatively, omit source_fasta and set source_url to an accessible FASTA endpoint.
+    expected_sequence_sha256: "1ada221849592524097e2f1f5f6230a6595dd67676412145f2bd11088fe54a0c"
+    n_asvs: 1
+    prevalence: 0.50
+    mean_reads: 50
+
+artifacts:
+  group_differential_abundance:
+    enabled: true
+    group_columns: [Type_Group, Case]
+    asvs_per_group: 6
+    log_fold_change_sd: 0.25
+    min_abs_log_fold_change: 2.50
+    candidate_min_prevalence: 0.60
+    disjoint_drivers: true
+  microbial_network:
+    enabled: true
+    n_modules: 4
+    asvs_per_module: 6
+    loading: 1.0
+    candidate_min_prevalence: 0.50
+  microbiome_batch_effect:
+    enabled: true
+    column: batch
+    asvs_per_batch: 10
+    log_fold_change: 1.25
+    direction: mixed
+  pcr_bias:
+    enabled: true
+    log_mean: 0.0
+    log_sd: 0.35
+  contaminants:
+    enabled: true
+    n_asvs: 3
+    prevalence: 0.45
+    mean_reads: 40
+  chimeras:
+    enabled: true
+    n_chimeras: 5
+    fraction_of_reads: 0.02
+  chemistry_batch_effect:
+    enabled: true
+    sd: 0.25
+
+fastq:
+  simulator: insilicoseq
+  model: miseq
+  cpus: 8
+  gzip: true
+  include_primers: true
+  keep_iss_inputs: true
+
+  # Prevent ISS from dropping short V4 amplicons.
+  minimum_template_length: 350
+
+  # Sequence encountered when a read runs beyond the amplicon insert.
+  readthrough_padding_sequence: AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
+
+validation:
+  run_dada2: false
+  trunc_len_f: 240
+  trunc_len_r: 200
+  max_ee_f: 2
+  max_ee_r: 2
