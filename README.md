@@ -235,6 +235,7 @@ results/
 - `ground_truth_chimeras.tsv`: chimera parents and breakpoint.
 - `ground_truth_chemistry_batch.tsv`: compound-specific batch effects.
 - `ground_truth_mitochondria.tsv`: mitochondrial source record, exact sequence checksum, configured abundance, observed prevalence, and injected read count. By default DECOI uses a vendored, checksum-pinned segment of the human RefSeq mitochondrial genome, avoiding a runtime network dependency; `reference_fixtures.mitochondria.source_fasta` can select another local fixture and `source_url` remains available explicitly. DECOI synthetically adds the configured amplicon primers to this genuine mitochondrial template so downstream mitochondrial filtering can be tested; it does not assert natural amplification by those primers.
+- `ground_truth_extraction_controls.tsv`: synthetic extraction-blank identifiers, read totals, and DNA concentrations. When `artifacts.extraction_controls.enabled` is true, these controls are enriched for the implanted contaminant ASVs and are included in the FASTQ manifest and metadata so prevalence- and frequency-based decontamination workflows can be tested without patient data.
 - `fastq_validation.tsv`: expected and observed R1/R2 record counts.
 
 ## Reproducibility
@@ -272,7 +273,7 @@ The supplied settings are reasonable defaults, not universal optimums. Adjust tr
 pytest -q
 ```
 
-The unit suite tests stable identifiers, primer resolution, study expansion and participant metadata cycling, depth-preserving group and microbial batch effects, contaminants, mitochondria, chimeras, and chemistry batch effects without requiring SILVA or a full R/InSilicoSeq installation.
+The unit suite tests stable identifiers, primer resolution, study expansion and participant metadata cycling, depth-preserving group and microbial batch effects, contaminants, extraction controls, mitochondria, chimeras, and chemistry batch effects without requiring SILVA or a full R/InSilicoSeq installation.
 
 ## Current scope
 

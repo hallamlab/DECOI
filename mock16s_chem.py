@@ -254,6 +254,23 @@ def add_contaminants(counts,chosen,tax,seqs,cfg,rng):
     return out,truth
 
 
+def add_extraction_controls(counts,meta,contaminant_ids,cfg,rng):
+    """Add explicit synthetic extraction blanks for decontam testing."""
+    settings=cfg.get("artifacts",{}).get("extraction_controls",{});out=counts.copy();metadata=meta.copy()
+    depths=out.sum(axis=0).reindex(metadata.sample_id).astype(float)
+    if "DNA_conc" not in metadata: metadata["DNA_conc"]=(1.0+49.0*depths.rank(method="average",pct=True)).to_numpy()
+    metadata["is_negative_control"]=False;metadata["is_positive_control"]=False;truth=[]
+    if not settings.get("enabled",False): return out,metadata,pd.DataFrame(columns=["sample_id","control_type","total_reads","DNA_conc"])
+    labels=list(settings.get("labels",["PBS","PBS_twz","Negative_96","Negative_man"]));means=float(settings.get("contaminant_mean_reads",600));background=float(settings.get("background_mean_reads",0.25));dna=list(settings.get("dna_conc",[0.02,0.04,0.06,0.08]))
+    if not contaminant_ids: raise ValueError("extraction_controls requires simulated contaminant ASVs")
+    biological=[x for x in out.index if x not in set(contaminant_ids)]
+    for i,label in enumerate(labels):
+        values=pd.Series(0,index=out.index,dtype=int);values.loc[list(contaminant_ids)]=rng.poisson(means,len(contaminant_ids))
+        if biological: values.loc[biological]=rng.poisson(background,len(biological))
+        out[label]=values;row={column:"" for column in metadata.columns};row.update({"sample_id":label,"group":"extraction_control","Participant_ID":label,"Case":"Control","Type_Group":"Control","disease_status":"control","site":"extraction_control","lung_status":"Control","batch":"control_plate","DNA_conc":float(dna[i%len(dna)]),"is_negative_control":True,"is_positive_control":False});metadata=pd.concat([metadata,pd.DataFrame([row])],ignore_index=True);truth.append((label,"negative",int(values.sum()),row["DNA_conc"]))
+    return out,metadata,pd.DataFrame(truth,columns=["sample_id","control_type","total_reads","DNA_conc"])
+
+
 def prepare_mitochondrial_features(cfg, outdir):
     a=cfg.get("reference_fixtures",{}).get("mitochondria",{})
     empty_tax=pd.DataFrame(columns=[*RANKS,"representative_reference_id"])
@@ -453,8 +470,6 @@ def simulate(cfg,output):
     with_mito,mitochondrial_abundance_truth=add_mitochondrial_reads(post_pcr,mitochondrial_ids,cfg,rng)
     with_contam,contaminants=add_contaminants(with_mito,chosen+mitochondrial_ids,tax,allseq,cfg,rng);seqs={x:allseq[x] for x in with_contam.index}
     final,newseq,chim_truth=make_chimeras(with_contam,seqs,cfg,rng);seqs.update(newseq)
-    final_rel=final.div(final.sum(axis=0),axis=1).fillna(0)
-    biological.to_csv(output/"asv_counts_biological.tsv",sep="\t");post_pcr.to_csv(output/"asv_counts_post_pcr.tsv",sep="\t");final.to_csv(output/"asv_counts_final.tsv",sep="\t");final.to_csv(output/"asv_counts.tsv",sep="\t");final_rel.to_csv(output/"asv_relative_abundance.tsv",sep="\t")
     registry=[]
     for aid in final.index:
         kind="chimera" if aid in newseq else ("contaminant" if aid in contaminants else ("mitochondrial" if aid in mitochondrial_ids else "biological"))
@@ -467,9 +482,12 @@ def simulate(cfg,output):
     chemistry_rel=biological.div(biological.sum(axis=0),axis=1).fillna(0)
     chem,ct,bt=create_chemistry(chemistry_rel,list(cc["compounds"]),int(cc["drivers_per_compound"]),float(cc["coefficient_sd"]),float(cc["noise_sd"]),float(cc.get("zero_inflation",0)),bool(cc.get("log_transform",True)),rng,meta,batch_sd,float(cc.get("min_abs_coefficient",0)),float(cc.get("driver_min_prevalence",0)))
     chem.to_csv(output/"chemistry.tsv",sep="\t",index_label="sample_id");ct.to_csv(output/"ground_truth_asv_chem.tsv",sep="\t",index=False);bt.to_csv(output/"ground_truth_chemistry_batch.tsv",sep="\t",index=False)
+    final,meta,control_truth=add_extraction_controls(final,meta,contaminants,cfg,rng);final_rel=final.div(final.sum(axis=0),axis=1).fillna(0)
+    biological.to_csv(output/"asv_counts_biological.tsv",sep="\t");post_pcr.to_csv(output/"asv_counts_post_pcr.tsv",sep="\t");final.to_csv(output/"asv_counts_final.tsv",sep="\t");final.to_csv(output/"asv_counts.tsv",sep="\t");final_rel.to_csv(output/"asv_relative_abundance.tsv",sep="\t")
     pcr_truth.to_csv(output/"ground_truth_pcr_bias.tsv",sep="\t",index=False);group_truth.to_csv(output/"ground_truth_group_effects.tsv",sep="\t",index=False);network_truth.to_csv(output/"ground_truth_network_modules.tsv",sep="\t",index=False);batch_truth.to_csv(output/"ground_truth_microbiome_batch_effects.tsv",sep="\t",index=False);chim_truth.to_csv(output/"ground_truth_chimeras.tsv",sep="\t",index=False)
     mitochondrial_source_truth.merge(mitochondrial_abundance_truth,on="ASV_ID",how="left").to_csv(output/"ground_truth_mitochondria.tsv",sep="\t",index=False)
-    meta=meta.copy();meta["biological_read_depth"]=biological.sum(axis=0).to_numpy();meta["final_read_depth"]=final.sum(axis=0).to_numpy();meta.to_csv(output/"sample_metadata.tsv",sep="\t",index=False)
+    control_truth.to_csv(output/"ground_truth_extraction_controls.tsv",sep="\t",index=False)
+    meta=meta.copy();meta["biological_read_depth"]=meta.sample_id.map(biological.sum(axis=0)).fillna(0).astype(int);meta["final_read_depth"]=meta.sample_id.map(final.sum(axis=0)).fillna(0).astype(int);meta.to_csv(output/"sample_metadata.tsv",sep="\t",index=False)
     write_reference_fixtures(output,seqs,contaminants,mitochondrial_ids)
     write_fastqs(final,seqs,cfg,output)
     study=yaml.safe_load(Path(cfg["study_design_file"]).read_text()) if cfg.get("study_design_file") else {"study_name":"mock_study"}

@@ -6,6 +6,7 @@
 /.nextflow.log*
 /work/
 /results/
+/results_control_bearing/
 /trace*.txt
 /timeline*.html
 /report*.html

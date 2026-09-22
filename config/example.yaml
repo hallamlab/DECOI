@@ -69,6 +69,12 @@ artifacts:
     n_asvs: 3
     prevalence: 0.45
     mean_reads: 40
+  extraction_controls:
+    enabled: true
+    labels: [PBS, PBS_twz, Negative_96, Negative_man]
+    contaminant_mean_reads: 600
+    background_mean_reads: 0.25
+    dna_conc: [0.02, 0.04, 0.06, 0.08]
   chimeras:
     enabled: true
     n_chimeras: 5

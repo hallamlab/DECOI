@@ -74,6 +74,20 @@ def test_contaminants():
  cfg={'simulation':{'n_asvs':1,'selection':{'domains':['Bacteria'],'min_taxonomy_ranks':5}},'artifacts':{'contaminants':{'enabled':True,'n_asvs':1,'prevalence':1,'mean_reads':5}}}
  out,ids=m.add_contaminants(counts,['a'],tax,seq,cfg,np.random.default_rng(2));assert len(ids)==1 and len(out)==2
 
+def test_extraction_controls_are_reproducible_and_labelled():
+ counts=pd.DataFrame({'s1':[10,3,1],'s2':[8,4,0]},index=['biological','contaminant_a','contaminant_b'])
+ meta=pd.DataFrame({'sample_id':['s1','s2'],'Participant_ID':['p1','p2'],'Case':['Control','Cancer'],'Type_Group':['BAL','BAL']})
+ cfg={'artifacts':{'extraction_controls':{'enabled':True,'labels':['blank_a','blank_b'],'contaminant_mean_reads':25,'background_mean_reads':0,'dna_conc':[.02,.04]}}}
+ out1,meta1,truth1=m.add_extraction_controls(counts,meta,['contaminant_a','contaminant_b'],cfg,np.random.default_rng(11))
+ out2,meta2,truth2=m.add_extraction_controls(counts,meta,['contaminant_a','contaminant_b'],cfg,np.random.default_rng(11))
+ pd.testing.assert_frame_equal(out1,out2);pd.testing.assert_frame_equal(meta1,meta2);pd.testing.assert_frame_equal(truth1,truth2)
+ assert list(out1.columns)==['s1','s2','blank_a','blank_b']
+ assert meta1.loc[meta1.is_negative_control,'sample_id'].tolist()==['blank_a','blank_b']
+ assert meta1.loc[meta1.is_negative_control,'DNA_conc'].tolist()==[.02,.04]
+ assert (out1.loc['biological',['blank_a','blank_b']]==0).all()
+ assert (out1.loc[['contaminant_a','contaminant_b'],['blank_a','blank_b']].sum(axis=0)>0).all()
+ assert truth1.total_reads.tolist()==out1[['blank_a','blank_b']].sum(axis=0).tolist()
+
 def test_mitochondrial_fixture(tmp_path):
  sequence='ACGTACGT'; source=tmp_path/'mitochondria.fasta';source.write_text('>NC_TEST Homo sapiens mitochondrion\n'+sequence+'\n')
  cfg={'reference_fixtures':{'mitochondria':{'enabled':True,'source_fasta':str(source),'expected_sequence_sha256':hashlib.sha256(sequence.encode()).hexdigest(),'prevalence':1,'mean_reads':5}}}
