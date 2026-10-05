@@ -1,0 +1,106 @@
+{
+  "panel_id": "decoi_airway_v1",
+  "lock_sha256": "38f773c52f19ec49c7f9201f743e59a4721a57689d7be937f9fb5e664261beaf",
+  "status": "passed",
+  "genomes": 550,
+  "roles": {
+    "contaminant": 3,
+    "biological": 547
+  },
+  "priority_counts": {
+    "reagent_contaminant": 3,
+    "airway_prioritized": 547
+  },
+  "genus_counts": {
+    "Abiotrophia": 1,
+    "Achromobacter": 3,
+    "Acinetobacter": 17,
+    "Actinomyces": 20,
+    "Aggregatibacter": 5,
+    "Anaerococcus": 6,
+    "Bordetella": 6,
+    "Bradyrhizobium": 1,
+    "Burkholderia": 10,
+    "Campylobacter": 24,
+    "Capnocytophaga": 13,
+    "Chryseobacterium": 26,
+    "Corynebacterium": 27,
+    "Cupriavidus": 13,
+    "Dialister": 2,
+    "Dolosigranulum": 1,
+    "Eikenella": 3,
+    "Elizabethkingia": 4,
+    "Enterobacter": 4,
+    "Finegoldia": 1,
+    "Fusobacterium": 13,
+    "Gemella": 3,
+    "Granulicatella": 2,
+    "Haemophilus": 7,
+    "Kingella": 3,
+    "Klebsiella": 5,
+    "Lautropia": 1,
+    "Legionella": 23,
+    "Leptotrichia": 7,
+    "Moraxella": 15,
+    "Mycobacterium": 13,
+    "Mycolicibacterium": 19,
+    "Mycoplasma": 22,
+    "Mycoplasmoides": 2,
+    "Mycoplasmopsis": 27,
+    "Neisseria": 24,
+    "Nocardia": 30,
+    "Pandoraea": 5,
+    "Parvimonas": 3,
+    "Peptoniphilus": 4,
+    "Peptostreptococcus": 3,
+    "Porphyromonas": 9,
+    "Prevotella": 18,
+    "Pseudomonas": 15,
+    "Ralstonia": 1,
+    "Rothia": 11,
+    "Schaalia": 7,
+    "Selenomonas": 4,
+    "Serratia": 6,
+    "Sphingomonas": 1,
+    "Staphylococcus": 7,
+    "Stenotrophomonas": 12,
+    "Streptococcus": 21,
+    "Treponema": 18,
+    "Veillonella": 2
+  },
+  "domain_counts": {
+    "Bacteria": 550
+  },
+  "genome_bases": 1917762752,
+  "compressed_genome_bytes": 555106748,
+  "contaminants": [
+    {
+      "accession": "GCF_053592855.1",
+      "organism_name": "Bradyrhizobium sp. T-1",
+      "Genus": "Bradyrhizobium",
+      "ASV_ID": "ASV_afee1c8bd378a5f8"
+    },
+    {
+      "accession": "GCF_024925465.1",
+      "organism_name": "Ralstonia pseudosolanacearum",
+      "Genus": "Ralstonia",
+      "ASV_ID": "ASV_08263a93f45fbdd6"
+    },
+    {
+      "accession": "GCF_002151445.1",
+      "organism_name": "Sphingomonas sp. KC8",
+      "Genus": "Sphingomonas",
+      "ASV_ID": "ASV_5f876c9c65117b65"
+    }
+  ],
+  "checks": [
+    "NCBI MD5",
+    "frozen SHA-256",
+    "taxonomy table checksum",
+    "unique accessions/species/markers",
+    "all prepared V4 sequences present in their genomes",
+    "marker copy counts",
+    "genome lengths",
+    "provenance and contaminant roles preserved"
+  ]
+}

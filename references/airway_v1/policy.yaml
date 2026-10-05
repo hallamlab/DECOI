@@ -1,0 +1,87 @@
+panel_id: decoi_airway_v1
+target_genomes: 550
+seed: 42
+description: Airway-prioritized simulation reference panel with explicitly labelled background diversity.
+assembly_source: https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_refseq.txt
+taxonomy_source: https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/new_taxdump/new_taxdump.tar.gz
+assembly_levels: [Complete Genome]
+domains: [Bacteria, Archaea]
+max_genome_bases: 12000000
+max_assemblies_per_species: 2
+max_retained_per_priority_genus: 30
+max_retained_per_background_genus: 5
+max_candidates: 5000
+contaminant_count: 3
+# Genus-level evidence; selected species are representatives, not a claim that
+# those particular assemblies were isolated from reagents.
+contaminant_genera: [Ralstonia, Bradyrhizobium, Sphingomonas, Methylobacterium, Microbacterium]
+contaminant_evidence_doi: 10.1186/s12915-014-0087-z
+# A benchmark design preference, not a claim that all species in these genera
+# inhabit healthy lungs. Respiratory opportunists and oral immigrants are included.
+priority_genera:
+  - Streptococcus
+  - Prevotella
+  - Veillonella
+  - Rothia
+  - Neisseria
+  - Haemophilus
+  - Fusobacterium
+  - Porphyromonas
+  - Gemella
+  - Granulicatella
+  - Actinomyces
+  - Schaalia
+  - Corynebacterium
+  - Staphylococcus
+  - Moraxella
+  - Pseudomonas
+  - Acinetobacter
+  - Klebsiella
+  - Enterobacter
+  - Stenotrophomonas
+  - Burkholderia
+  - Achromobacter
+  - Mycobacterium
+  - Mycolicibacterium
+  - Nocardia
+  - Sphingomonas
+  - Methylobacterium
+  - Parvimonas
+  - Peptostreptococcus
+  - Leptotrichia
+  - Capnocytophaga
+  - Alloprevotella
+  - Treponema
+  - Dialister
+  - Campylobacter
+  - Selenomonas
+  - Abiotrophia
+  - Dolosigranulum
+  - Lautropia
+  - Kingella
+  - Eikenella
+  - Aggregatibacter
+  - Chryseobacterium
+  - Elizabethkingia
+  - Serratia
+  - Ralstonia
+  - Cupriavidus
+  - Pandoraea
+  - Bordetella
+  - Legionella
+  - Mycoplasma
+  - Mycoplasmoides
+  - Mycoplasmopsis
+  - Finegoldia
+  - Anaerococcus
+  - Peptoniphilus
+  - Cutibacterium
+evidence:
+  - https://pmc.ncbi.nlm.nih.gov/articles/PMC3971609/
+  - https://pmc.ncbi.nlm.nih.gov/articles/PMC8900294/
+notes:
+  - Inclusion does not assert airway isolation, healthy carriage, or clinical relevance for every species.
+  - Background organisms supplement priority genera to reach the requested benchmark size.
+  - Eligibility follows DECOI's exact-primer, unambiguous-contig, and one-V4-allele restrictions.
+  - Species with identical V4 markers cannot both be retained in this initial model.
+  - This panel does not calibrate the inherited SparseDOSSA2 Stool abundance template to lung ecology.

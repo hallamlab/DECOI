@@ -7,6 +7,18 @@ params.silva_md5 = params.silva_md5 ?: "e0455a1a7de820039d684aad2053e937"
 params.silva_fasta = params.silva_fasta ?: null
 params.run_dada2 = params.run_dada2 ?: false
 params.dada2_threads = params.dada2_threads ?: 8
+params.wgs_reference = params.wgs_reference ?: null
+params.genome_dir = params.genome_dir ?: null
+
+process PREPARE_GENOMES {
+  tag "derive V4 from genomes"; publishDir "${params.outdir}/reference/genome_derived", mode:'copy'; conda "/home/ryan/mambaforge-pypy3/envs/mock16s-chem-v1"
+  input: path genomes; path config
+  output: path 'reference_v4', emit:reference
+  script:
+  """
+  python '${projectDir}/mock16s_chem.py' --config '${config}' --genome-dir '${genomes}' --reference-dir reference_v4 prepare-reference
+  """
+}
 
 process DOWNLOAD_SILVA {
   tag "SILVA 138.2"; publishDir "${params.outdir}/reference/source", mode:'copy'; conda "/home/ryan/mambaforge-pypy3/envs/mock16s-chem-v1"
@@ -28,11 +40,11 @@ process PREPARE_REFERENCE {
 }
 process SIMULATE_STUDY {
   tag "simulate mock study"; publishDir "${params.outdir}/dataset", mode:'copy'; conda "/home/ryan/mambaforge-pypy3/envs/mock16s-chem-v1"
-  input: path reference; path config; path study
+  input: path reference; path config; path study; path genomes
   output: path 'mock_dataset', emit:dataset
   script:
   """
-  python '${projectDir}/mock16s_chem.py' --config '${config}' --reference-dir '${reference}' --study-design '${study}' simulate --output mock_dataset
+  python '${projectDir}/mock16s_chem.py' --config '${config}' --reference-dir '${reference}' --study-design '${study}' ${genomes ? "--wgs-reference '${genomes}'" : ''} simulate --output mock_dataset
   """
 }
 process VALIDATE_DADA2 {
@@ -49,7 +61,16 @@ process VALIDATE_DADA2 {
 }
 workflow {
   config_ch=Channel.value(file(params.config,checkIfExists:true)); study_ch=Channel.value(file(params.study,checkIfExists:true))
-  if(params.silva_fasta){silva_ch=Channel.value(file(params.silva_fasta,checkIfExists:true))} else {DOWNLOAD_SILVA();silva_ch=DOWNLOAD_SILVA.out.fasta}
-  PREPARE_REFERENCE(silva_ch,config_ch); SIMULATE_STUDY(PREPARE_REFERENCE.out.reference,config_ch,study_ch)
+  if(params.genome_dir && params.wgs_reference) error 'Use either --genome_dir (raw genomes) or --wgs_reference (prelinked bundle), not both'
+  if(params.genome_dir){
+    PREPARE_GENOMES(Channel.value(file(params.genome_dir,checkIfExists:true)),config_ch)
+    reference_ch=PREPARE_GENOMES.out.reference
+  } else {
+    if(params.silva_fasta){silva_ch=Channel.value(file(params.silva_fasta,checkIfExists:true))} else {DOWNLOAD_SILVA();silva_ch=DOWNLOAD_SILVA.out.fasta}
+    PREPARE_REFERENCE(silva_ch,config_ch)
+    reference_ch=PREPARE_REFERENCE.out.reference
+  }
+  genomes_ch=Channel.value(params.wgs_reference ? file(params.wgs_reference,checkIfExists:true) : [])
+  SIMULATE_STUDY(reference_ch,config_ch,study_ch,genomes_ch)
   if(params.run_dada2){VALIDATE_DADA2(SIMULATE_STUDY.out.dataset)}
 }

@@ -9,6 +9,9 @@ from typing import TextIO
 import numpy as np
 import pandas as pd
 import yaml
+import tempfile
+from wgs import load_genomes, simulate_wgs
+from genome_reference import prepare_genome_reference
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -70,6 +73,9 @@ def iss_amplicon_sequence(insert: str, include_primers: bool, forward: str, reve
 
 
 def prepare_reference(cfg: dict) -> None:
+    if cfg["reference"].get("source")=="genomes":
+        prepare_genome_reference(cfg,cfg["reference"]["genome_dir"],cfg["reference"]["output_dir"])
+        return
     rcfg = cfg["reference"]; source = Path(rcfg["dada2_silva_fasta"]); outdir = Path(rcfg["output_dir"])
     outdir.mkdir(parents=True, exist_ok=True)
     if not source.exists(): raise FileNotFoundError(source)
@@ -141,8 +147,10 @@ def load_study_samples(cfg: dict) -> pd.DataFrame:
     return df
 
 
-def choose_asvs(cfg,tax,seqs,rng,n=None,exclude=None):
+def choose_asvs(cfg,tax,seqs,rng,n=None,exclude=None,role="biological"):
     filt=cfg["simulation"].get("selection",{}); c=tax.copy(); exclude=set(exclude or [])
+    if "reference_role" in c and role is not None:
+        c=c[c.reference_role.fillna("biological")==role]
     if filt.get("domains"): c=c[c.Domain.isin(filt["domains"])]
     if int(filt.get("min_taxonomy_ranks",0)): c=c[c[RANKS].notna().sum(axis=1)>=int(filt["min_taxonomy_ranks"])]
     ids=[x for x in c.index.intersection(seqs) if x not in exclude]; n=int(n or cfg["simulation"]["n_asvs"])
@@ -245,7 +253,7 @@ def apply_pcr_bias(counts,cfg,rng):
 def add_contaminants(counts,chosen,tax,seqs,cfg,rng):
     a=cfg.get("artifacts",{}).get("contaminants",{}); truth=[]; out=counts.copy()
     if not a.get("enabled",False): return out,truth
-    ids=choose_asvs(cfg,tax,seqs,rng,n=int(a.get("n_asvs",3)),exclude=chosen)
+    ids=choose_asvs(cfg,tax,seqs,rng,n=int(a.get("n_asvs",3)),exclude=chosen,role="contaminant")
     prevalence=float(a.get("prevalence",0.5)); mean=float(a.get("mean_reads",50))
     for aid in ids:
         vals=[]
@@ -453,12 +461,40 @@ def write_report(outdir,manifest):
     rows=[("Samples",counts.shape[1]),("Final sequence features",counts.shape[0]),("Total read pairs",int(counts.to_numpy().sum())),("Chemical compounds",chem.shape[1]),("Median sample depth",int(counts.sum().median()))]
     table="".join(f"<tr><th>{html.escape(str(k))}</th><td>{html.escape(str(v))}</td></tr>" for k,v in rows)
     body=f"""<!doctype html><html><head><meta charset='utf-8'><title>DECOI report</title><style>body{{font-family:system-ui;max-width:950px;margin:2rem auto;padding:0 1rem}}table{{border-collapse:collapse}}th,td{{border:1px solid #bbb;padding:.45rem;text-align:left}}code{{background:#eee;padding:.1rem .3rem}}</style></head><body><h1>{html.escape(str(manifest['study_name']))}</h1><p>DECOI truth-aware V4 16S and chemistry benchmark.</p><table>{table}</table><h2>Artifact settings</h2><pre>{html.escape(yaml.safe_dump(manifest['artifacts'],sort_keys=False))}</pre><h2>Primary truth files</h2><p><code>asv_counts_biological.tsv</code>, <code>asv_counts_post_pcr.tsv</code>, <code>asv_counts_final.tsv</code>, <code>ground_truth_feature_registry.tsv</code>, <code>ground_truth_microbiome_batch_effects.tsv</code>, <code>ground_truth_mitochondria.tsv</code>, and <code>ground_truth_asv_chem.tsv</code>.</p></body></html>"""
+    if "wgs" in manifest.get("assays",{}):
+        wgs=manifest["assays"]["wgs"]
+        details=(f"<h2>Matched WGS assay</h2><p>{wgs['samples']} libraries; "
+                 f"{wgs['genomes']} mapped genomes; {wgs['total_read_pairs']} verified read pairs. "
+                 "The table above reports amplicon counts. Shared sample links are in "
+                 "<code>assay_manifest.tsv</code>; WGS composition and read-count truth are in "
+                 "<code>wgs/</code>. Amplicon chimeras and mitochondrial marker fixtures are excluded from WGS.</p>")
+        body=body.replace("</body>",details+"</body>")
     (outdir/"report.html").write_text(body)
 
 
 def simulate(cfg,output):
     output.mkdir(parents=True,exist_ok=True);rng=np.random.default_rng(int(cfg["seed"]));meta=load_study_samples(cfg);cfg["simulation"]["n_samples"]=len(meta)
-    tax,allseq=load_reference(cfg);chosen=choose_asvs(cfg,tax,allseq,rng);counts,rel=run_sparsedossa(cfg,output)
+    tax,allseq=load_reference(cfg)
+    reference_metadata=json.loads((Path(cfg["reference"]["output_dir"])/"reference_manifest.json").read_text())
+    if reference_metadata.get("source_type")=="genomes":
+        cfg.setdefault("wgs",{}).setdefault("enabled",True)
+    if reference_metadata.get("source_type")=="genomes" and cfg.get("wgs",{}).get("enabled",False):
+        cfg["wgs"]["reference_dir"]=str(Path(cfg["reference"]["output_dir"])/reference_metadata["genome_bundle"])
+    wgs_enabled=bool(cfg.get("wgs",{}).get("enabled",False))
+    if wgs_enabled:
+        if (output/"wgs").exists(): raise ValueError("Use a fresh output directory for a paired WGS run")
+        genome_registry,genomes=load_genomes(cfg["wgs"]["reference_dir"],allseq)
+        # Restrict biological and contaminant selection to sequence-verified genomes.
+        tax=tax.loc[tax.index.intersection(genome_registry.index)]
+        required=int(cfg["simulation"]["n_asvs"])
+        contaminant_settings=cfg.get("artifacts",{}).get("contaminants",{})
+        if contaminant_settings.get("enabled",False): required+=int(contaminant_settings.get("n_asvs",3))
+        choose_asvs(cfg,tax,allseq,np.random.default_rng(0),n=required,role=None)
+        if "reference_role" in tax:
+            choose_asvs(cfg,tax,allseq,np.random.default_rng(0),n=int(cfg["simulation"]["n_asvs"]))
+            if contaminant_settings.get("enabled",False):
+                choose_asvs(cfg,tax,allseq,np.random.default_rng(0),n=int(contaminant_settings.get("n_asvs",3)),role="contaminant")
+    chosen=choose_asvs(cfg,tax,allseq,rng);counts,rel=run_sparsedossa(cfg,output)
     mitochondrial_ids,mitochondrial_seqs,mitochondrial_tax,mitochondrial_source_truth=prepare_mitochondrial_features(cfg,output)
     allseq.update(mitochondrial_seqs)
     if not mitochondrial_tax.empty: tax=pd.concat([tax,mitochondrial_tax],axis=0)
@@ -490,18 +526,72 @@ def simulate(cfg,output):
     meta=meta.copy();meta["biological_read_depth"]=meta.sample_id.map(biological.sum(axis=0)).fillna(0).astype(int);meta["final_read_depth"]=meta.sample_id.map(final.sum(axis=0)).fillna(0).astype(int);meta.to_csv(output/"sample_metadata.tsv",sep="\t",index=False)
     write_reference_fixtures(output,seqs,contaminants,mitochondrial_ids)
     write_fastqs(final,seqs,cfg,output)
+    wgs_summary=None
+    if wgs_enabled:
+        wgs_summary=simulate_wgs(cfg,biological,final,contaminants,genome_registry,genomes,output,run,count_fastq_records,stable_uuid)
+        amplicon_manifest=pd.read_csv(output/"fastq_manifest.tsv",sep="\t").assign(assay="amplicon")
+        wgs_manifest=pd.read_csv(output/"wgs/fastq_manifest.tsv",sep="\t").assign(assay="wgs")
+        for col in ("fastq_r1","fastq_r2"): wgs_manifest[col]="wgs/"+wgs_manifest[col]
+        pd.concat([amplicon_manifest,wgs_manifest],ignore_index=True).to_csv(output/"assay_manifest.tsv",sep="\t",index=False)
     study=yaml.safe_load(Path(cfg["study_design_file"]).read_text()) if cfg.get("study_design_file") else {"study_name":"mock_study"}
     manifest={"schema_version":"1.0","software":"DECOI","study_name":study.get("study_name","mock_study"),"seed":cfg["seed"],"config":cfg,"artifacts":cfg.get("artifacts",{}),"dimensions":{"samples":final.shape[1],"biological_asvs":len(chosen),"final_features":final.shape[0],"total_read_pairs":int(final.to_numpy().sum())},"versions":{"python":sys.version.split()[0],"platform":platform.platform(),"insilicoseq":command_version("iss"),"R":command_version("Rscript"),"cutadapt":command_version("cutadapt")},"reference_manifest":json.loads((Path(cfg["reference"]["output_dir"])/"reference_manifest.json").read_text())}
+    if wgs_summary: manifest["assays"]={"amplicon":{"total_read_pairs":int(final.to_numpy().sum())},"wgs":wgs_summary}
     (output/"manifest.json").write_text(json.dumps(manifest,indent=2)+"\n");write_report(output,manifest)
 
 
+def add_wgs(cfg, output):
+    """Append WGS to a completed study without resimulating any existing data."""
+    manifest_path=output/"manifest.json"
+    manifest=json.loads(manifest_path.read_text())
+    if (output/"wgs").exists() or "wgs" in manifest.get("assays",{}):
+        raise ValueError("This study already has WGS outputs; refusing to overwrite them")
+    settings=cfg.get("wgs",{})
+    if not settings.get("reference_dir"):
+        raise ValueError("Adding WGS requires wgs.reference_dir or --wgs-reference")
+    saved_cfg=dict(manifest["config"])
+    saved_cfg["wgs"]={**settings,"enabled":True}
+    registry=pd.read_csv(output/"ground_truth_feature_registry.tsv",sep="\t")
+    markers=dict(zip(registry.ASV_ID,registry.v4_sequence))
+    biological=pd.read_csv(output/"asv_counts_biological.tsv",sep="\t",index_col=0)
+    final=pd.read_csv(output/"asv_counts_final.tsv",sep="\t",index_col=0)
+    contaminants=registry.loc[registry.feature_type=="contaminant","ASV_ID"].tolist()
+    genome_registry,genomes=load_genomes(settings["reference_dir"],markers,selected_ids=set(biological.index).union(contaminants))
+    missing=set(biological.index).union(contaminants)-set(genome_registry.index)
+    if missing:
+        raise ValueError(f"Genome mappings missing for {len(missing)} existing features; study was not modified")
+    amplicon_manifest=pd.read_csv(output/"fastq_manifest.tsv",sep="\t").assign(assay="amplicon")
+    if set(amplicon_manifest.sample_id)!=set(final.columns):
+        raise ValueError("Existing amplicon manifest and count matrix have different samples")
+    # Failed simulation leaves the completed study intact and permits retry.
+    with tempfile.TemporaryDirectory(prefix=".decoi-wgs-",dir=output) as temporary:
+        temporary=Path(temporary)
+        summary=simulate_wgs(saved_cfg,biological,final,contaminants,genome_registry,genomes,temporary,run,count_fastq_records,stable_uuid)
+        wgs_manifest=pd.read_csv(temporary/"wgs/fastq_manifest.tsv",sep="\t").assign(assay="wgs")
+        for col in ("fastq_r1","fastq_r2"): wgs_manifest[col]="wgs/"+wgs_manifest[col]
+        combined=pd.concat([amplicon_manifest,wgs_manifest],ignore_index=True)
+        (temporary/"wgs").rename(output/"wgs")
+    combined.to_csv(output/"assay_manifest.tsv",sep="\t",index=False)
+    summary["versions"]={"python":sys.version.split()[0],"insilicoseq":command_version("iss")}
+    summary["settings"]=saved_cfg["wgs"]
+    manifest.setdefault("assays",{})["amplicon"]={"total_read_pairs":int(final.to_numpy().sum())}
+    manifest["assays"]["wgs"]=summary
+    manifest_path.write_text(json.dumps(manifest,indent=2)+"\n")
+    write_report(output,manifest)
+
+
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument("--config",required=True,type=Path);p.add_argument("--verbose",action="store_true");p.add_argument("--silva-fasta",type=Path);p.add_argument("--reference-dir",type=Path);p.add_argument("--study-design",type=Path)
-    sub=p.add_subparsers(dest="command",required=True);sub.add_parser("prepare-reference");s=sub.add_parser("simulate");s.add_argument("--output",type=Path,default=Path("mock_dataset"));args=p.parse_args()
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument("--config",required=True,type=Path);p.add_argument("--verbose",action="store_true");p.add_argument("--silva-fasta",type=Path);p.add_argument("--reference-dir",type=Path);p.add_argument("--study-design",type=Path);p.add_argument("--wgs-reference",type=Path);p.add_argument("--genome-dir",type=Path)
+    sub=p.add_subparsers(dest="command",required=True);sub.add_parser("prepare-reference");s=sub.add_parser("simulate");s.add_argument("--output",type=Path,default=Path("mock_dataset"));a=sub.add_parser("add-wgs");a.add_argument("--output",type=Path,required=True);args=p.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,format="%(levelname)s: %(message)s");cfg=yaml.safe_load(args.config.read_text())
     if args.silva_fasta:cfg["reference"]["dada2_silva_fasta"]=str(args.silva_fasta)
     if args.reference_dir:cfg["reference"]["output_dir"]=str(args.reference_dir)
     if args.study_design:cfg["study_design_file"]=str(args.study_design)
-    prepare_reference(cfg) if args.command=="prepare-reference" else simulate(cfg,args.output)
+    if args.wgs_reference:cfg.setdefault("wgs",{}).update(enabled=True,reference_dir=str(args.wgs_reference))
+    if args.genome_dir:
+        cfg["reference"].update(source="genomes",genome_dir=str(args.genome_dir))
+        cfg.setdefault("wgs",{})["enabled"]=True
+    if args.command=="prepare-reference": prepare_reference(cfg)
+    elif args.command=="add-wgs": add_wgs(cfg,args.output)
+    else: simulate(cfg,args.output)
 
 if __name__=="__main__":main()
