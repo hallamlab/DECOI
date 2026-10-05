@@ -11,11 +11,12 @@ for the checks performed and their limits.
 ## 1. Obtain the repository and install the environment
 
 ```bash
-git clone https://github.com/hallamlab/DECOI.git
+git clone --branch refactor/user-guide-installation https://github.com/hallamlab/DECOI.git
 cd DECOI
 mamba env create -f environment.yml
 conda activate decoi
 Rscript scripts/install_sparsedossa2.R
+python -m pip install .
 ```
 
 The R installer installs SparseDOSSA2 from `biobakery/SparseDOSSA2@26a998a`
@@ -86,7 +87,8 @@ airway-prioritized benchmark pool, not 550 proven human lung isolates.
 ## 4. Prepare and audit the paired reference
 
 ```bash
-python mock16s_chem.py --config config/airway_paired.yaml prepare-reference
+decoi prepare-reference --config config/airway_paired.yaml \
+  -o data/reference_panels/airway_v1/prepared
 python scripts/audit_genome_panel.py \
   --lock references/airway_v1/panel.lock.json \
   --raw data/reference_panels/airway_v1/raw \
@@ -123,20 +125,16 @@ SILVA study: genome-first simulation is a new realization of the same study
 design, not an in-place preservation of its old ASVs or chemistry.
 
 ```bash
-mkdir -p results
-set -o pipefail
-test ! -e results/airway_paired_full && \
-python mock16s_chem.py --config config/airway_paired.yaml \
-  simulate --output results/airway_paired_full \
-  2>&1 | tee results/airway_paired_full.log
+decoi run --config config/airway_paired.yaml \
+  -o results/airway_paired_full --threads 8
 ```
 
-The existence check prevents this example from reusing an output directory.
-Use a persistent terminal or
-batch allocation; this is not a background service. The direct Python command has
-no resume/checkpoint mode. On failure, retain the log and partial output for
-diagnosis; do not blindly rerun into it or delete unrelated reference/results
-directories. Use a fresh output path for a new attempt.
+Use a persistent terminal or batch allocation. The controller records logs and
+resolved settings under the output directory. To continue an interrupted run,
+repeat the command with `--resume`; preserve the `.decoi/` work and cache directory.
+Completed stages can be reused, but a partially generated simulation stage runs
+again in full. The previously audited full study used the direct Python engine;
+the controller runs that same engine through Nextflow.
 
 Save environment provenance alongside this run:
 
@@ -156,7 +154,8 @@ but does not replace these full environment records.
 
 ## 6. Inspect completion
 
-For direct Python execution, the output root is `results/airway_paired_full/`:
+The controller publishes the dataset under
+`results/airway_paired_full/dataset/mock_dataset/`:
 
 ```text
 airway_paired_full/
@@ -193,32 +192,18 @@ equivalents using copy number, then weights by genome length. Chimeras and the
 short mitochondrial fixture are amplicon-only. DADA2 validation is amplicon-only
 and is not enabled in this full-test configuration.
 
-## Nextflow execution
+## Controller and advanced execution
 
-Activate the installed `decoi` environment, then run:
+The `decoi run` command selects genome-first preparation from the configuration
+and runs the Nextflow stages. It prepares its reference inside the work directory;
+the separately audited reference in step 4 is not reused by this workflow.
+`--threads` controls the simulation and optional DADA2 CPU requests; reference
+preparation uses one CPU. See [resource controls and Slurm](cli.md) for cluster
+execution. Full-study Slurm behavior and memory peaks have not been validated.
 
-```bash
-nextflow run main.nf \
-  --config config/airway_paired.yaml \
-  --study study/example_study.yaml \
-  --genome_dir data/reference_panels/airway_v1/raw \
-  --threads 8 --outdir results/airway_paired_nextflow
-```
-
-There are no machine-specific environment paths in the workflow. Pass
-`--genome_dir` explicitly: it selects genome-first preparation instead of SILVA.
-This route prepares the raw genomes inside its work directory rather than
-reusing step 4's reference. The dataset is published under
-`results/airway_paired_nextflow/dataset/mock_dataset/`. Preserve `work/` and
-`.nextflow/` for `-resume`. Study simulation is one task: resume does not restart
-inside a partially generated sample.
-
-`--threads` controls the simulation task's requested CPUs and the corresponding
-amplicon/WGS simulator worker counts. Optional DADA2 has a separate
-`--dada2_threads` setting. For Slurm use `-profile slurm` and a site configuration
-file for account, partition, time and memory. The environment, references and
-work directory must be shared with compute nodes. Full-study cluster behavior
-and memory peaks have not yet been validated.
+The original `main.nf` and Python scripts remain available to developers. The
+recommended user interface is the controller; do not run a raw Nextflow controller
+concurrently against the same output/work directories.
 
 ## Custom genomes and existing studies
 

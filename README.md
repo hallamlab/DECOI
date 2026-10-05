@@ -13,28 +13,41 @@ The chemistry is correlated by construction, not a mechanistic metabolic model.
 
 ## Quick start
 
+On Linux with mamba and Git available. For setup from a new machine, follow
+the [complete installation guide](docs/installation.md). The command below selects
+the current controller branch.
+
 ```bash
-git clone https://github.com/hallamlab/DECOI.git
+git clone --branch refactor/user-guide-installation https://github.com/hallamlab/DECOI.git
 cd DECOI
 mamba env create -f environment.yml
 conda activate decoi
 Rscript scripts/install_sparsedossa2.R
+python -m pip install .
 ```
 
-## Small reviewer run
+## Small test run
 
 ```bash
-python scripts/create_paired_smoke.py reviewer --genome-first
-nextflow run main.nf \
-  --config reviewer/config.yaml --study reviewer/study.yaml \
-  --genome_dir reviewer/genomes --threads 1 --outdir reviewer/results
-python -m http.server 8765 --directory reviewer/results/dataset/mock_dataset
+decoi check
+decoi test -o test-output
+decoi report -o test-output --serve
 ```
 
-Open `http://localhost:8765/report.html`. The small synthetic input exercises
-amplicon reads, WGS reads, chemistry, controls and their ground-truth tables.
-For a full study, optional DADA2 validation, scientific limits and citations,
-see the [user guide](docs/index.md). Matched WGS support is experimental.
+Open `http://localhost:8765/report.html`. The test requests one CPU and 4 GB RAM
+and generates its tiny reference genomes locally. It exercises amplicon and WGS
+reads, chemistry, extraction controls, and ground-truth tables.
+
+For your own study:
+
+```bash
+decoi run --config study-config.yaml -o study-output --threads 8
+```
+
+The controller runs Nextflow and keeps logs and work files in the output directory.
+Use `--resume` to reuse matching completed tasks. See the [command-line guide](docs/cli.md)
+for input paths, resource controls and Slurm, and the [full user guide](docs/index.md)
+for study design, reference preparation and interpretation. Matched WGS remains experimental.
 
 ## Citation
 

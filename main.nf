@@ -56,7 +56,9 @@ process VALIDATE_DADA2 {
   """
   Rscript '${projectDir}/scripts/validate_dada2.R' \
     --fastq-dir '${dataset}/fastq' --outdir dada2_validation \
-    --forward-primer GTGYCAGCMGCCGCGGTAA --reverse-primer GGACTACNVGGGTWTCTAAT \
+    --forward-primer '${params.forward_primer}' --reverse-primer '${params.reverse_primer}' \
+    --trunc-f ${params.trunc_f} --trunc-r ${params.trunc_r} \
+    --max-ee-f ${params.max_ee_f} --max-ee-r ${params.max_ee_r} \
     --threads ${task.cpus}
   """
 }

@@ -1,44 +1,70 @@
-# Small reviewer test
+# Small installation test
 
 This test uses eight tiny synthetic genomes, two biological samples and one
-extraction blank. It generates matched amplicon and WGS read pairs, chemistry,
-metadata and ground-truth tables. It exercises the real tools without downloading
-SILVA or the full airway panel. It is an installation test, not a biological benchmark.
+extraction blank. It generates matched amplicon and WGS reads, chemistry,
+metadata, ground-truth tables and a report. It runs the real tools without
+requiring SILVA or the full airway genome panel.
 
-After [installation](installation.md), from the repository root:
+## Install
 
-```bash
-python scripts/create_paired_smoke.py reviewer --genome-first
-nextflow run main.nf \
-  --config reviewer/config.yaml --study reviewer/study.yaml \
-  --genome_dir reviewer/genomes --threads 1 --outdir reviewer/results
-```
-
-The generator requires a new destination directory. The default Nextflow memory
-reservations are 8 GB for preparation and 32 GB for simulation; these are scheduling
-requests, not measurements of this tiny test's memory use.
-
-Inspect:
+On Linux with mamba and Git available, start from a shell without an active Python
+virtual environment (`.venv`). If DECOI is already installed, activate its mamba
+environment and skip to the run commands.
 
 ```bash
-ls reviewer/results/dataset/mock_dataset
-python -m http.server 8765 --directory reviewer/results/dataset/mock_dataset
+git clone --branch refactor/user-guide-installation https://github.com/hallamlab/DECOI.git
+cd DECOI
+mamba env create -f environment.yml
+conda activate decoi
+Rscript scripts/install_sparsedossa2.R
+python -m pip install .
 ```
 
-Open `http://localhost:8765/report.html`. Stop the server with Ctrl-C.
-`fastq_validation.tsv` and `wgs/fastq_validation.tsv` should have identical expected
-and observed R1/R2 counts. `assay_manifest.tsv` links both assays to the same sample
-IDs. Chemistry is generated for biological samples, not extraction blanks.
+Installation downloads software dependencies. The tiny reference inputs are
+generated locally; the supporting Python/R environment is larger than the demo.
+See [installation](installation.md) for details.
 
-Repeat the same Nextflow command with `-resume` to check cache reuse. Keep the
-work directory when testing resume. Optional `--run_dada2 true` exercises amplicon
-validation; the tiny read depth may leave few or no retained ASVs, which is not
-an installation failure. Validation does not analyze the WGS reads.
+## Run
 
-For developer regression tests:
+These commands work from any directory after installation:
 
 ```bash
-python -m pytest -q
+decoi check
+decoi test -o test-output
 ```
 
-The opt-in real-tool regression suite is described in the full paired-study guide.
+`check` verifies the required Python modules and external programs, including the
+R packages. `test` creates its inputs under `test-output/inputs/` and requests
+**one CPU and 4 GB RAM per task**. Reference preparation and study simulation
+must both complete successfully. The controller prints the output and log locations.
+
+Expected outputs:
+
+- Three libraries per assay: two biological samples and one extraction blank.
+- Twelve compressed FASTQs: R1 and R2 for both assays in each library.
+- 100 WGS pairs per library (300 total); amplicon depths follow the simulation.
+- One chemical measurement per biological sample, with no chemistry for the blank.
+- Shared metadata, assay manifests, ground-truth tables and `report.html`.
+
+## Review and resume
+
+```bash
+decoi report -o test-output --serve
+```
+
+Open `http://localhost:8765/report.html`. Stop the server with Ctrl-C. For a remote
+server, use `--no-browser` and [SSH port forwarding](troubleshooting.md).
+The dataset is in `test-output/dataset/mock_dataset/`. Both `fastq_validation.tsv`
+and `wgs/fastq_validation.tsv` should have matching expected/R1/R2 counts.
+
+```bash
+decoi test -o test-output --resume
+```
+
+Completed matching Nextflow tasks should be cached. Keep `.decoi/`, including its
+work directory, when testing resume. Resume operates at workflow-stage level,
+not within a partially generated sample. To start independently, choose a new
+output directory.
+
+DADA2 is not part of this tiny test: its error-model training needs more reads.
+Use a larger study for [optional amplicon validation](validation.md).

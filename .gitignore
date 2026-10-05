@@ -68,3 +68,6 @@ Thumbs.db
 # Codex/agent-local workspace metadata
 /.agents/
 /.codex/
+
+# Generated tiny reviewer inputs and outputs
+/reviewer/

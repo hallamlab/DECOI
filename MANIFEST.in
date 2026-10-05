@@ -1,0 +1,6 @@
+include main.nf nextflow.config mock16s_chem.py genome_reference.py wgs.py environment.yml
+recursive-include scripts *.py *.R
+recursive-include config *.yaml
+recursive-include study *.yaml
+recursive-include fixtures *.fasta
+recursive-include references/airway_v1 *.json *.tsv *.yaml *.md

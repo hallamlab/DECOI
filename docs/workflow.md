@@ -35,11 +35,11 @@ for sequence-verified shared genome linkage; a SILVA-derived run can also use an
 explicit prelinked WGS reference bundle. The frozen airway panel is an optional
 reference selection, not a prerequisite for the small reviewer test.
 
-Use `--threads` to request the CPUs used by amplicon and WGS read simulation.
+Use `decoi run --threads` to request the CPUs used by amplicon and WGS read simulation.
 The simulation process reserves those CPUs in Nextflow. Reference preparation
-uses one CPU; optional DADA2 has a separate `--dada2_threads` request. Local
-execution is the default. `-profile slurm` uses Slurm; use a site configuration
-file for account, partition and task resource limits. This is not currently a
+uses one CPU; optional DADA2 uses the controller’s `--threads` request. Local
+execution is the default. Use `--executor slurm` with account, partition and
+resource flags for Slurm (see the [command-line guide](cli.md)). This is not currently a
 per-sample distributed simulation DAG: multiple samples are generated inside
 one simulation task. Compute nodes must see the environment and work directory.
 
