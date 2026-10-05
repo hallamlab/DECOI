@@ -11,7 +11,7 @@ params.wgs_reference = params.wgs_reference ?: null
 params.genome_dir = params.genome_dir ?: null
 
 process PREPARE_GENOMES {
-  tag "derive V4 from genomes"; publishDir "${params.outdir}/reference/genome_derived", mode:'copy'; conda "/home/ryan/mambaforge-pypy3/envs/mock16s-chem-v1"
+  tag "derive V4 from genomes"; publishDir "${params.outdir}/reference/genome_derived", mode:'copy'
   input: path genomes; path config
   output: path 'reference_v4', emit:reference
   script:
@@ -21,7 +21,7 @@ process PREPARE_GENOMES {
 }
 
 process DOWNLOAD_SILVA {
-  tag "SILVA 138.2"; publishDir "${params.outdir}/reference/source", mode:'copy'; conda "/home/ryan/mambaforge-pypy3/envs/mock16s-chem-v1"
+  tag "SILVA 138.2"; publishDir "${params.outdir}/reference/source", mode:'copy'
   output: path 'silva_nr99_v138.2_toSpecies_trainset.fa.gz', emit:fasta
   script:
   """
@@ -30,7 +30,7 @@ process DOWNLOAD_SILVA {
   """
 }
 process PREPARE_REFERENCE {
-  tag "extract SILVA V4"; publishDir "${params.outdir}/reference/v4", mode:'copy'; conda "/home/ryan/mambaforge-pypy3/envs/mock16s-chem-v1"
+  tag "extract SILVA V4"; publishDir "${params.outdir}/reference/v4", mode:'copy'
   input: path silva; path config
   output: path 'reference_v4', emit:reference
   script:
@@ -39,16 +39,17 @@ process PREPARE_REFERENCE {
   """
 }
 process SIMULATE_STUDY {
-  tag "simulate mock study"; publishDir "${params.outdir}/dataset", mode:'copy'; conda "/home/ryan/mambaforge-pypy3/envs/mock16s-chem-v1"
+  cpus params.threads
+  tag "simulate mock study"; publishDir "${params.outdir}/dataset", mode:'copy'
   input: path reference; path config; path study; path genomes
   output: path 'mock_dataset', emit:dataset
   script:
   """
-  python '${projectDir}/mock16s_chem.py' --config '${config}' --reference-dir '${reference}' --study-design '${study}' ${genomes ? "--wgs-reference '${genomes}'" : ''} simulate --output mock_dataset
+  python '${projectDir}/mock16s_chem.py' --config '${config}' --reference-dir '${reference}' --study-design '${study}' --threads ${task.cpus} ${genomes ? "--wgs-reference '${genomes}'" : ''} simulate --output mock_dataset
   """
 }
 process VALIDATE_DADA2 {
-  tag "DADA2 validation"; publishDir "${params.outdir}/validation", mode:'copy'; conda "/home/ryan/mambaforge-pypy3/envs/mock16s-chem-v1"; cpus params.dada2_threads
+  tag "DADA2 validation"; publishDir "${params.outdir}/validation", mode:'copy'; cpus params.dada2_threads
   input: path dataset
   output: path 'dada2_validation', emit:validation
   script:

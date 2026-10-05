@@ -108,7 +108,7 @@ validation:
 
 # Matched WGS uses the same cohort and simulation settings above.
 # V4 markers and the linked genome bundle are prepared from real genomes first.
-# See README.md: Matched short-read WGS (experimental).
+# See docs/paired-study.md: full matched short-read WGS study (experimental).
 wgs:
   enabled: true
   # Initial test depth; independent of the amplicon depth.

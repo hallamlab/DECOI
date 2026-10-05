@@ -1,0 +1,14 @@
+.wy-nav-content { max-width: 1150px; }
+.wy-table-responsive table td, .wy-table-responsive table th { white-space: normal; }
+.rst-content img { height: auto; }
+.mermaid { overflow-x: auto; }
+
+/* Shared 2240-unit canvases preserve scale between workflow previews. */
+.rst-content img[src*="/diagrams/"] { display: block; width: 100%; max-width: 100%; height: auto; margin: 1.5rem auto; }
+
+/* Match the shared primary-workflow margins across Hallam documentation. */
+.wy-nav-content:has(.decoi-primary-workflow) { max-width: none; padding-inline: clamp(20px, 3vw, 56px); }
+.rst-content img[src*="workflow-"] { display: block; width: 94%; max-width: 1200px; height: auto; margin: 1.5rem auto; }
+
+/* Keep diagram arrows and labels legible in dark browser themes. */
+.mermaid { background: #ffffff; padding: 0.75rem; border-radius: 0.5rem; }

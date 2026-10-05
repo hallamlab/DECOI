@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1330" viewBox="0 0 1200 1330" role="img" aria-labelledby="title desc">
+<title id="title">DECOI workflow overview</title>
+<desc id="desc">Conceptual modules connect reference preparation, shared biological truth, chemical and assay effects, read simulation and reproducible outputs. Numbered modules describe concepts, not a serial execution schedule. WGS and DADA2 are optional branches.</desc>
+<rect width="1200" height="1330" fill="white"/>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#111111"/></marker></defs>
+<style>text{font-family:"Times New Roman",Times,serif;fill:#111111}.wire{fill:none;stroke:#111111;stroke-width:1.5;marker-end:url(#arrow)}</style>
+<rect x="20" y="20" width="1160" height="80" rx="16" fill="#CCCCCC" stroke="#666666" stroke-width="1.5"/>
+<text x="600" y="54" font-size="29" text-anchor="middle"><tspan x="600" dy="0">DECOI • Simulated microbial studies with Nextflow</tspan></text>
+<text x="600" y="84" font-size="21" text-anchor="middle"><tspan x="600" dy="0">Mamba environments • Local / Slurm execution • Resources, checkpoints and logs</tspan></text>
+<rect x="20" y="120" width="690" height="130" rx="16" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="1.5"/>
+<text x="40" y="150" font-size="24" text-anchor="start"><tspan x="40" dy="0">Inputs</tspan></text>
+<text x="40" y="180" font-size="20" text-anchor="start"><tspan x="40" dy="0">Study design + configuration; SILVA or verified genomes</tspan><tspan x="40" dy="23.6">Optional: frozen airway panel or linked WGS reference bundle</tspan><tspan x="40" dy="23.6">Configured assays, biological effects and technical artifacts</tspan></text>
+<rect x="730" y="120" width="450" height="130" rx="16" fill="#CCCCCC" stroke="#666666" stroke-width="1.5"/>
+<text x="775" y="157" font-size="18" text-anchor="middle"><tspan x="775" dy="0">Module</tspan></text>
+<rect x="762" y="185" width="26" height="26" rx="0" fill="#F5F5F5" stroke="#111111" stroke-width="3"/>
+<text x="865" y="157" font-size="18" text-anchor="middle"><tspan x="865" dy="0">Compute</tspan></text>
+<path d="M865 185 L878 198 L865 211 L852 198Z" fill="#F5F5F5" stroke="#666666" stroke-width="3"/>
+<text x="955" y="157" font-size="18" text-anchor="middle"><tspan x="955" dy="0">Data</tspan></text>
+<circle cx="955" cy="198" r="12" fill="#F5F5F5" stroke="#666666" stroke-width="3"/>
+<text x="1045" y="157" font-size="18" text-anchor="middle"><tspan x="1045" dy="0">Input</tspan></text>
+<circle cx="1045" cy="198" r="12" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="3"/>
+<text x="1135" y="157" font-size="18" text-anchor="middle"><tspan x="1135" dy="0">Output</tspan></text>
+<circle cx="1135" cy="198" r="12" fill="#D5E8D4" stroke="#82B366" stroke-width="3"/>
+<text x="125" y="355" font-size="23" text-anchor="middle"><tspan x="125" dy="0">Reference</tspan><tspan x="125" dy="27.14">preparation</tspan></text>
+<rect x="257" y="352" width="26" height="26" rx="0" fill="#F5F5F5" stroke="#111111" stroke-width="3"/>
+<text x="270" y="372" font-size="20" text-anchor="middle"><tspan x="270" dy="0">1</tspan></text>
+<circle cx="410" cy="365" r="12" fill="#DAE8FC" stroke="#6C8EBF" stroke-width="3"/>
+<path d="M730 352 L743 365 L730 378 L717 365Z" fill="#F5F5F5" stroke="#666666" stroke-width="3"/>
+<circle cx="1060" cy="365" r="12" fill="#D5E8D4" stroke="#82B366" stroke-width="3"/>
+<text x="410" y="300" font-size="21" text-anchor="middle"><tspan x="410" dy="0">SILVA or</tspan><tspan x="410" dy="24.78">verified genomes</tspan></text>
+<text x="730" y="300" font-size="23" text-anchor="middle"><tspan x="730" dy="0">Extract V4 markers;</tspan><tspan x="730" dy="27.14">link taxonomy and genomes</tspan></text>
+<text x="1060" y="300" font-size="22" text-anchor="middle"><tspan x="1060" dy="0">Reference sequences</tspan><tspan x="1060" dy="25.96">and identity registry</tspan></text>
+<text x="730" y="408" font-size="19" text-anchor="middle"><tspan x="730" dy="0">Primer matching / Cutadapt • Deduplication • Checksums and marker-copy links</tspan></text>
+<path class="wire" d="M284.5 365 L396.5 365"/>
+<path class="wire" d="M423.5 365 L714.879 365"/>
+<path class="wire" d="M745.121 365 L1046.5 365"/>
+<path class="wire" d="M270 379.5 L270 545.5"/>
+<text x="125" y="550" font-size="23" text-anchor="middle"><tspan x="125" dy="0">Biological</tspan><tspan x="125" dy="27.14">community</tspan></text>
+<rect x="257" y="547" width="26" height="26" rx="0" fill="#F5F5F5" stroke="#111111" stroke-width="3"/>
+<text x="270" y="567" font-size="20" text-anchor="middle"><tspan x="270" dy="0">2</tspan></text>
+<circle cx="410" cy="560" r="12" fill="#F5F5F5" stroke="#666666" stroke-width="3"/>
+<path d="M730 547 L743 560 L730 573 L717 560Z" fill="#F5F5F5" stroke="#666666" stroke-width="3"/>
+<circle cx="1060" cy="560" r="12" fill="#D5E8D4" stroke="#82B366" stroke-width="3"/>
+<text x="410" y="495" font-size="21" text-anchor="middle"><tspan x="410" dy="0">Study design and</tspan><tspan x="410" dy="24.78">reference identities</tspan></text>
+<text x="730" y="495" font-size="23" text-anchor="middle"><tspan x="730" dy="0">Simulate communities;</tspan><tspan x="730" dy="27.14">apply biological effects</tspan></text>
+<text x="1060" y="495" font-size="22" text-anchor="middle"><tspan x="1060" dy="0">Shared abundances</tspan><tspan x="1060" dy="25.96">and chemical truth</tspan></text>
+<text x="730" y="603" font-size="19" text-anchor="middle"><tspan x="730" dy="0">SparseDOSSA2 • Cohort / network / batch effects</tspan><tspan x="730" dy="22.42">Constructed ASV–compound associations, noise and zeros</tspan></text>
+<path class="wire" d="M284.5 560 L396.5 560"/>
+<path class="wire" d="M423.5 560 L714.879 560"/>
+<path class="wire" d="M745.121 560 L1046.5 560"/>
+<path class="wire" d="M270 574.5 L270 740.5"/>
+<text x="125" y="745" font-size="23" text-anchor="middle"><tspan x="125" dy="0">Assay effects</tspan><tspan x="125" dy="27.14">and controls</tspan></text>
+<rect x="257" y="742" width="26" height="26" rx="0" fill="#F5F5F5" stroke="#111111" stroke-width="3"/>
+<text x="270" y="762" font-size="20" text-anchor="middle"><tspan x="270" dy="0">3</tspan></text>
+<circle cx="410" cy="755" r="12" fill="#F5F5F5" stroke="#666666" stroke-width="3"/>
+<path d="M730 742 L743 755 L730 768 L717 755Z" fill="#F5F5F5" stroke="#666666" stroke-width="3"/>
+<circle cx="1060" cy="755" r="12" fill="#D5E8D4" stroke="#82B366" stroke-width="3"/>
+<text x="410" y="690" font-size="21" text-anchor="middle"><tspan x="410" dy="0">Shared pre-PCR</tspan><tspan x="410" dy="24.78">biological state</tspan></text>
+<text x="730" y="690" font-size="23" text-anchor="middle"><tspan x="730" dy="0">Add assay-specific effects</tspan><tspan x="730" dy="27.14">and control allocations</tspan></text>
+<text x="1060" y="690" font-size="22" text-anchor="middle"><tspan x="1060" dy="0">Amplicon and</tspan><tspan x="1060" dy="25.96">optional WGS truth</tspan></text>
+<text x="730" y="798" font-size="19" text-anchor="middle"><tspan x="730" dy="0">PCR bias • Contaminants • Mitochondrial fixtures • Chimeras</tspan><tspan x="730" dy="22.42">WGS: marker-copy correction and genome-length weighting</tspan></text>
+<path class="wire" d="M284.5 755 L396.5 755"/>
+<path class="wire" d="M423.5 755 L714.879 755"/>
+<path class="wire" d="M745.121 755 L1046.5 755"/>
+<path class="wire" d="M270 769.5 L270 935.5"/>
+<text x="125" y="940" font-size="23" text-anchor="middle"><tspan x="125" dy="0">Read simulation</tspan><tspan x="125" dy="27.14">and validation</tspan></text>
+<rect x="257" y="937" width="26" height="26" rx="0" fill="#F5F5F5" stroke="#111111" stroke-width="3"/>
+<text x="270" y="957" font-size="20" text-anchor="middle"><tspan x="270" dy="0">4</tspan></text>
+<circle cx="410" cy="950" r="12" fill="#F5F5F5" stroke="#666666" stroke-width="3"/>
+<path d="M730 937 L743 950 L730 963 L717 950Z" fill="#F5F5F5" stroke="#666666" stroke-width="3"/>
+<circle cx="1060" cy="950" r="12" fill="#D5E8D4" stroke="#82B366" stroke-width="3"/>
+<text x="410" y="885" font-size="21" text-anchor="middle"><tspan x="410" dy="0">Assay references</tspan><tspan x="410" dy="24.78">and read allocations</tspan></text>
+<text x="730" y="885" font-size="23" text-anchor="middle"><tspan x="730" dy="0">Simulate paired reads;</tspan><tspan x="730" dy="27.14">check requested counts</tspan></text>
+<text x="1060" y="885" font-size="22" text-anchor="middle"><tspan x="1060" dy="0">Paired FASTQs and</tspan><tspan x="1060" dy="25.96">validation tables</tspan></text>
+<text x="730" y="993" font-size="19" text-anchor="middle"><tspan x="730" dy="0">InSilicoSeq • R1 / R2 count checks</tspan><tspan x="730" dy="22.42">Optional amplicon validation: Cutadapt + DADA2</tspan></text>
+<path class="wire" d="M284.5 950 L396.5 950"/>
+<path class="wire" d="M423.5 950 L714.879 950"/>
+<path class="wire" d="M745.121 950 L1046.5 950"/>
+<path class="wire" d="M270 964.5 L270 1130.5"/>
+<text x="125" y="1135" font-size="23" text-anchor="middle"><tspan x="125" dy="0">Results and</tspan><tspan x="125" dy="27.14">reproducibility</tspan></text>
+<rect x="257" y="1132" width="26" height="26" rx="0" fill="#F5F5F5" stroke="#111111" stroke-width="3"/>
+<text x="270" y="1152" font-size="20" text-anchor="middle"><tspan x="270" dy="0">5</tspan></text>
+<circle cx="410" cy="1145" r="12" fill="#F5F5F5" stroke="#666666" stroke-width="3"/>
+<path d="M730 1132 L743 1145 L730 1158 L717 1145Z" fill="#F5F5F5" stroke="#666666" stroke-width="3"/>
+<circle cx="1060" cy="1145" r="12" fill="#D5E8D4" stroke="#82B366" stroke-width="3"/>
+<text x="410" y="1080" font-size="21" text-anchor="middle"><tspan x="410" dy="0">Assays, metadata</tspan><tspan x="410" dy="24.78">and recorded effects</tspan></text>
+<text x="730" y="1080" font-size="23" text-anchor="middle"><tspan x="730" dy="0">Assemble the dataset</tspan><tspan x="730" dy="27.14">and run summary</tspan></text>
+<text x="1060" y="1080" font-size="22" text-anchor="middle"><tspan x="1060" dy="0">Report, manifests</tspan><tspan x="1060" dy="25.96">and truth tables</tspan></text>
+<text x="730" y="1188" font-size="19" text-anchor="middle"><tspan x="730" dy="0">Source hashes • Configuration • Random seeds • Software versions</tspan></text>
+<path class="wire" d="M284.5 1145 L396.5 1145"/>
+<path class="wire" d="M423.5 1145 L714.879 1145"/>
+<path class="wire" d="M745.121 1145 L1046.5 1145"/>
+<rect x="20" y="1245" width="1160" height="65" rx="12" fill="#D5E8D4" stroke="#82B366" stroke-width="1.5"/>
+<text x="600" y="1273" font-size="23" text-anchor="middle"><tspan x="600" dy="0">Matched assays, chemical measurements and recorded ground truth</tspan></text>
+<text x="600" y="1298" font-size="19" text-anchor="middle"><tspan x="600" dy="0">FASTQs • Metadata • Truth tables • HTML report • Reproducibility manifest</tspan></text>
+</svg>

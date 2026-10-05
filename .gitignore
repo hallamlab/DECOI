@@ -1,5 +1,6 @@
-# Private, in-progress documentation
-/docs/
+# Private manuscripts and generated documentation builds
+/manuscripts/
+/docs/_build/
 
 # Nextflow state, logs, work directories, and generated reports
 /.nextflow/

@@ -1,4 +1,4 @@
-name: mock16s-chem-v1
+name: decoi
 
 channels:
   - conda-forge
@@ -9,6 +9,7 @@ channel_priority: strict
 dependencies:
   - python=3.11
   - pip
+  - pytest
   - nextflow
 
   # Pin R rather than accepting the newest release

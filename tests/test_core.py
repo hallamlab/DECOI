@@ -108,3 +108,23 @@ def test_chemistry_driver_constraints():
  rel=pd.DataFrame([[.6,.5,.4,.5],[.4,.5,.6,.5],[0,0,.01,0]],index=['a','b','rare'],columns=['s1','s2','s3','s4'])
  chem,truth,_=m.create_chemistry(rel,['c'],2,.2,.1,0,True,np.random.default_rng(4),min_abs_coefficient=.9,driver_min_prevalence=.5)
  assert chem.shape==(4,1) and set(truth.ASV_ID)=={'a','b'} and (truth.coefficient.abs()>=.9).all()
+
+
+def test_cli_threads_controls_both_assays(tmp_path, monkeypatch):
+ import sys, yaml
+ config=tmp_path/'config.yaml'
+ config.write_text(yaml.safe_dump({'fastq': {'cpus': 8}, 'wgs': {'cpus': 8}}))
+ observed=[]
+ monkeypatch.setattr(m,'simulate',lambda cfg,out: observed.append(cfg))
+ monkeypatch.setattr(sys,'argv',['mock16s_chem.py','--config',str(config),'--threads','2','simulate'])
+ m.main()
+ assert observed[0]['fastq']['cpus']==2
+ assert observed[0]['wgs']['cpus']==2
+
+
+def test_cli_rejects_invalid_threads_before_simulation(tmp_path, monkeypatch):
+ import sys, pytest
+ config=tmp_path/'config.yaml';config.write_text('{}')
+ monkeypatch.setattr(sys,'argv',['mock16s_chem.py','--config',str(config),'--threads','0','simulate'])
+ with pytest.raises(SystemExit) as error: m.main()
+ assert error.value.code==2

@@ -580,9 +580,13 @@ def add_wgs(cfg, output):
 
 
 def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument("--config",required=True,type=Path);p.add_argument("--verbose",action="store_true");p.add_argument("--silva-fasta",type=Path);p.add_argument("--reference-dir",type=Path);p.add_argument("--study-design",type=Path);p.add_argument("--wgs-reference",type=Path);p.add_argument("--genome-dir",type=Path)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument("--config",required=True,type=Path);p.add_argument("--verbose",action="store_true");p.add_argument("--threads",type=int,help="CPUs for read simulation");p.add_argument("--silva-fasta",type=Path);p.add_argument("--reference-dir",type=Path);p.add_argument("--study-design",type=Path);p.add_argument("--wgs-reference",type=Path);p.add_argument("--genome-dir",type=Path)
     sub=p.add_subparsers(dest="command",required=True);sub.add_parser("prepare-reference");s=sub.add_parser("simulate");s.add_argument("--output",type=Path,default=Path("mock_dataset"));a=sub.add_parser("add-wgs");a.add_argument("--output",type=Path,required=True);args=p.parse_args()
     logging.basicConfig(level=logging.DEBUG if args.verbose else logging.INFO,format="%(levelname)s: %(message)s");cfg=yaml.safe_load(args.config.read_text())
+    if args.threads is not None:
+        if args.threads < 1: p.error("--threads must be positive")
+        cfg.setdefault("fastq",{})["cpus"] = args.threads
+        cfg.setdefault("wgs",{})["cpus"] = args.threads
     if args.silva_fasta:cfg["reference"]["dada2_silva_fasta"]=str(args.silva_fasta)
     if args.reference_dir:cfg["reference"]["output_dir"]=str(args.reference_dir)
     if args.study_design:cfg["study_design_file"]=str(args.study_design)
