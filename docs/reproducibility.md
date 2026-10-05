@@ -24,5 +24,5 @@ do not guarantee byte-identical output across different simulator/library versio
 
 ## Current scope
 
-The released v1.0 supports SILVA-derived V4 amplicons and InSilicoSeq MiSeq paired-end output. This feature branch additionally supports experimental paired WGS using explicitly mapped genome references, as described above. It does not yet model KEGG pathways, mechanistic metabolism, index hopping, complete adapter/index constructs, PacBio, or Nanopore reads.
+DECOI supports SILVA-derived V4 amplicons and InSilicoSeq MiSeq paired-end output, including experimental paired WGS using explicitly mapped genome references, as described above. It does not yet model KEGG pathways, mechanistic metabolism, index hopping, complete adapter/index constructs, PacBio, or Nanopore reads.
 

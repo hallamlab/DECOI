@@ -3,8 +3,10 @@
 This guide generates V4
 amplicons, short-read WGS, and chemistry for **one shared mock study**, not two
 independently sampled communities. Run commands from the repository root in Bash.
-The full real-genome study has not yet been completed; this is the procedure for
-that test, not a claim that it has passed.
+The full real-genome study completed successfully on a local Linux server.
+The audited run used 32 simulator workers; the commands below use eight by
+default. See [completed-run validation](validation.md#completed-full-paired-study)
+for the checks performed and their limits.
 
 ## 1. Obtain the repository and install the environment
 
