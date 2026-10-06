@@ -23,7 +23,7 @@ with marker-copy and genome-length adjustments; amplicon-only artifacts stay
 with the amplicon assay.
 
 Follow the [quickstart](installation.md) and run the [tiny test](reviewer-test.md)
-to get started. You can then use the supplied airway reference panel or provide
+to get started. You can then use the supplied [airway mock microbial community](reference-panel.md) or provide
 your own references and study design. Current support covers V4 amplicons
 and paired short-read WGS with the InSilicoSeq MiSeq model, run locally or through
 Nextflow with a Slurm executor. Optional DADA2 validation is available for

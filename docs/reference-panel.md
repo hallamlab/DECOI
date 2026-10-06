@@ -1,122 +1,80 @@
-# Frozen airway reference panel
+# Airway mock microbial community
 
-## DECOI airway-prioritized reference panel v1
+DECOI includes a reference genome collection for generating mock communities
+inspired by the human oral and respiratory microbiota. It lets you simulate V4
+16S amplicons and shotgun metagenomic reads from the same organisms, with known
+abundances and deliberately introduced contaminants.
 
-This panel supplies one fixed genome pool for paired V4 amplicon and short-read
-metagenomics simulations. The lung cohort is defined separately in
-`study/example_study.yaml`. Reference selection does not change the inherited
-SparseDOSSA2 `Stool` abundance template or establish a calibrated lung ecosystem.
+The collection contains **550 bacterial genomes**. Of these, **547 are available
+as community members** and **three are reserved for simulated contamination**.
+The supplied study selects 500 community members and adds the three contaminant
+references. Each genome has a corresponding V4 sequence, so the amplicon and
+metagenomic outputs can be traced back to the same reference organisms.
 
-See [the citation and evidence table](citations.md) for verified publication DOIs,
-their specific relevance, and the limits of genus-level evidence.
-For installation, rehydration, and the full paired-study test on another system,
-follow [SETUP_WGS.md](paired-study.md). Genome data are ignored by Git and must
-be downloaded from the lock or transferred separately.
+This is a community designed for testing analysis methods. It is not intended to
+reproduce the composition of a particular patient's airway or a typical healthy
+lung. The study design is defined separately in `study/example_study.yaml`, and
+abundances are generated using the SparseDOSSA2 `Stool` template with the effects
+specified in the configuration. They have not been fitted to airway observations.
 
-## Frozen v1 panel
+To use these genomes, follow the [full mock-community setup](paired-study.md).
+The [tiny installation test](reviewer-test.md) uses synthetic sequences instead
+and does not require this download.
 
-The completed panel contains **550 bacterial genome/V4 pairs**: 547 biological
-references from prioritized genera and three reserved contaminant references.
-No background-tier genomes were needed. All 550 were retained during independent
-DECOI reference preparation. The configured study can select 500 biological
-features and the three contaminants without overlap.
+## Which organisms are included, and why?
 
-The contaminants represent **Bradyrhizobium**, **Ralstonia**, and **Sphingomonas**;
-their exact accessions and the evidence limitations are listed in `CITATIONS.md`.
-The lock-file SHA-256 is
-`38f773c52f19ec49c7f9201f743e59a4721a57689d7be937f9fb5e664261beaf`.
+Selection gives priority to genera associated with the oral cavity and airways,
+including respiratory opportunists. The rationale draws on studies of
+[oral-associated lung communities](https://doi.org/10.1186/2049-2618-1-19) and
+[bronchial communities in lung cancer](https://doi.org/10.1186/s12943-022-01544-6).
+The studies and their relevance are listed below.
 
-Selection/preparation used Python 3.11.15, Biopython 1.87, NumPy 2.4.6,
-pandas 3.0.3, PyYAML 6.0.3, and curl 8.5.0 (Ubuntu package
-8.5.0-2ubuntu10.15). Reference validation is recorded in `validation.json`.
+These studies support the choice of microbial groups. They do not establish
+that every selected species or strain lives in the human airway. The expanded
+genus list is a simulation-design choice, and all 547 community references came
+from that list. Additional genera could have been included if needed to reach
+the target number, but were not needed for this collection.
 
-## Selection policy
+Three genomes represent potential reagent or laboratory contamination:
+**Bradyrhizobium**, **Ralstonia**, and **Sphingomonas**. They were selected from a
+candidate list that also included Methylobacterium and Microbacterium, based on
+[Salter et al. (2014)](https://doi.org/10.1186/s12915-014-0087-z). In the simulation,
+these three references are kept separate from the biological community and used
+to add contamination and generate extraction controls in both assays. This role
+does not imply that the particular reference strains were isolated from reagents.
 
-`policy.yaml` defines a target of 550 unique genome/marker pairs, including three
-reserved reagent-contaminant representatives. Candidates come from a frozen
-NCBI RefSeq assembly-summary snapshot and NCBI taxonomy snapshot. Only current,
-complete bacterial/archaeal assemblies of 0.3–12 Mb are considered. Reference or
-representative assemblies are preferred; at most two assemblies per species are
-screened, with at most one retained. Candidates are ordered deterministically
-using seed 42 and balanced across genera within each priority tier.
+## How were the reference genomes chosen?
 
-Airway/oral-associated genera and respiratory opportunists are prioritized before
-background diversity. The priority list is an explicit benchmark design choice,
-not evidence that every included species occurs in healthy lungs. It is informed
-by primary studies of [supraglottic-associated lung communities](https://pmc.ncbi.nlm.nih.gov/articles/PMC3971609/)
-and [bronchial communities in lung cancer cohorts](https://pmc.ncbi.nlm.nih.gov/articles/PMC8900294/).
-Background members, if needed to reach the target, remain labelled `background`.
+The selection settings are recorded in `references/airway_v1/policy.yaml`.
+Candidate genomes came from saved copies of the NCBI RefSeq assembly catalogue
+and NCBI taxonomy. The selection considered complete bacterial and archaeal
+assemblies between 0.3 and 12 Mb; all retained genomes were bacterial. NCBI
+reference or representative assemblies were preferred.
 
-The contaminant pool draws three representatives from distinct genera among
-Ralstonia, Bradyrhizobium, Sphingomonas, Methylobacterium, and Microbacterium.
-Genus-level reagent/laboratory contamination evidence comes from
-[Salter et al. (2014), DOI 10.1186/s12915-014-0087-z](https://doi.org/10.1186/s12915-014-0087-z).
-This designation models contamination; it does not assert that the selected
-reference strains were isolated from a reagent. `reference_role=contaminant`
-excludes these genomes from biological community selection and reserves them for
-contaminant injection and extraction controls in both assays.
+At most two assemblies per species were screened, with no more than one retained.
+Selection was balanced across genera within each group of candidates, using a
+fixed random seed of 42 so the procedure could be reproduced.
 
-All genomes must satisfy the current DECOI restrictions: unambiguous A/C/G/T
-contigs at least 1 kb long, an exact primer-bounded V4 insert of the configured
-length, one distinct V4 allele per assembly, and no V4 allele shared with another
-retained assembly. Identical copies within an assembly are supported. Whole
-assemblies are retained or excluded; bases and contigs are not edited to qualify.
-These restrictions impose ascertainment bias and are appropriate to an initial
-software benchmark, not a comprehensive census of airway organisms.
+Each retained assembly had to meet the sequence requirements used by DECOI:
 
-## Frozen files and local data
+- Contigs contain only unambiguous A, C, G and T bases and are at least 1 kb long.
+- The configured primers identify a V4 region within the accepted length range.
+- The assembly contains one distinct V4 sequence, although identical copies are allowed.
+- That V4 sequence is not shared with another retained genome.
 
-The completed panel is represented by `panel.lock.json` and `panel.tsv` beside
-this file. The lock stores exact versioned accessions, download URLs, NCBI MD5
-checksums, SHA-256 checksums of the compressed FASTAs, taxonomy, biological versus
-contaminant roles, priority labels, and hashes of the selection inputs. Pin the
-lock-file SHA-256 when publishing a run. Do not regenerate v1 from a later live
-catalog: create a new panel version for any changed selection.
+Assemblies were accepted or excluded as a whole; sequences were not edited to
+make them qualify. These requirements make it possible to link amplicon features
+to individual genomes, but they also exclude some organisms and reduce the
+biological diversity represented by the mock community.
 
-`build_config.yaml` archives the exact configuration supplied during selection;
-its hash is recorded in the lock. Its original directory placeholders are not
-the runtime paths. Use `config/airway_paired.yaml` for simulation. Reproducing the
-selection itself also requires the archived catalog and taxonomy snapshots;
-reusing the panel requires only the lock and the pinned genomes.
+## Download and check the genomes
 
-Large files live under ignored `data/reference_panels/airway_v1/`:
+The genome sequences are downloaded separately from NCBI. GitHub contains the
+selection settings, genome inventory and information needed to retrieve the same
+sequence files. Activate the DECOI environment and run these commands from the
+repository root.
 
-- `metadata/`: frozen catalog, taxonomy archive, and candidate plan;
-- `cache/`: downloaded candidate genomes and NCBI MD5 files;
-- `screening.jsonl`: screening outcomes, including excluded candidates;
-- `raw/`: selected original genome archives and `taxonomy.tsv`;
-- `prepared/`: linked genome/V4 reference produced by DECOI.
-
-The genome sequences are from NCBI RefSeq. See the
-[NCBI genome-download documentation](https://www.ncbi.nlm.nih.gov/genome/doc/ftpfaq/)
-for the upstream assembly catalog and per-assembly files. Rehydration can only
-succeed while the pinned upstream files remain available; local archival copies
-and the lock provide the strongest long-term reproducibility.
-
-## Commands
-
-Activate the DECOI environment and run from the repository root. Build a *new*
-panel directory using the recorded policy:
-
-```bash
-python scripts/build_genome_panel.py build --workers 4
-```
-
-`build` is for panel development, not installation of frozen v1. It refuses an
-already frozen destination. Changing a panel requires a new policy/panel ID and
-output directory. The historical configuration is `build_config.yaml`; the
-current runtime config has updated directory paths. Use the rehydration command
-below to reproduce the existing panel on another machine.
-
-Verify an existing downloaded panel without network access:
-
-```bash
-python scripts/build_genome_panel.py verify \
-  --lock references/airway_v1/panel.lock.json \
-  --output data/reference_panels/airway_v1/raw
-```
-
-Rehydrate exactly the frozen accessions on another machine:
+Download the recorded genome versions:
 
 ```bash
 python scripts/build_genome_panel.py rehydrate \
@@ -124,19 +82,25 @@ python scripts/build_genome_panel.py rehydrate \
   --output data/reference_panels/airway_v1/raw
 ```
 
-Prepare V4 and genome links in a fresh directory:
+Here, `rehydrate` is the script's command for downloading the existing collection.
+It checks the downloaded files against the recorded checksums. To check an
+existing download again without network access:
 
 ```bash
-python mock16s_chem.py --config config/airway_paired.yaml \
-  --genome-dir data/reference_panels/airway_v1/raw \
-  --reference-dir data/reference_panels/airway_v1/prepared prepare-reference
+python scripts/build_genome_panel.py verify \
+  --lock references/airway_v1/panel.lock.json \
+  --output data/reference_panels/airway_v1/raw
 ```
 
-Simulation uses that prepared reference with the existing study design. Creating
-a paired dataset from this genome panel is a new realization of the study and
-does not imply exact genomic matches to the historical SILVA-selected ASVs.
+Prepare the V4 sequences and their genome links in a new directory:
 
-Audit the downloaded files and their prepared genome/marker links:
+```bash
+decoi prepare-reference --config config/airway_paired.yaml \
+  -o data/reference_panels/airway_v1/prepared
+```
+
+Check the prepared sequences, genome identities, marker copy numbers and assigned
+community/contaminant roles:
 
 ```bash
 python scripts/audit_genome_panel.py \
@@ -146,27 +110,67 @@ python scripts/audit_genome_panel.py \
   --report data/reference_panels/airway_v1/validation.json
 ```
 
-The current WGS renderer retains per-sample InSilicoSeq input FASTAs. A full
-study can therefore use substantially more disk space than the reference panel:
-budget for copies of represented genomes across samples as well as reads.
+All 550 genomes passed this check. Continue with the
+[full study instructions](paired-study.md) to generate reads and chemical
+measurements. A new simulation from these genomes does not preserve the ASV
+identities of an earlier, independently selected SILVA-based study.
 
+WGS simulation retains a genome FASTA for each sample's read-generation step.
+Allow disk space for these files as well as the final reads; a full study uses
+more space than the downloaded reference collection alone.
 
-## Evidence supporting the airway and contaminant reference panel
+## Keep track of the exact sequences used
 
-## Scope of the evidence
+The files under `references/airway_v1/` document the reference collection:
 
-This is an airway-prioritized **simulation benchmark**, not a published list of
-550 validated lung isolates. Literature supports the genus-level ecological
-rationale. The exact versioned RefSeq assemblies in `panel.lock.json` were chosen
-by the reproducible selection and sequence-eligibility rules in `policy.yaml`.
-Genus membership does not establish airway residence, pathogenicity, or reagent
-origin for every species or strain in that genus.
+- `panel.tsv`: the genome inventory.
+- `panel.lock.json`: exact assembly versions, download locations, taxonomy,
+  checksums, and the assigned community or contaminant role.
+- `policy.yaml`: the selection settings.
+- `build_config.yaml`: the configuration used when selecting genomes.
+- `validation.json`: the recorded reference checks.
+- `CITATIONS.md`: the literature supporting the organism choices.
 
-The three core sources below informed selection. The supplementary sources add
-context; they were documented after selection and did not change the frozen
-accessions, selection policy, or simulated abundances.
+The filenames retain the term `panel` for compatibility with the download tools.
+The SHA-256 checksum of `panel.lock.json` is
+`38f773c52f19ec49c7f9201f743e59a4721a57689d7be937f9fb5e664261beaf`.
+Record this checksum with your results to identify the exact genome inventory.
 
-## Core selection evidence
+Selection originally used Python 3.11.15, Biopython 1.87, NumPy 2.4.6,
+pandas 3.0.3, PyYAML 6.0.3 and curl 8.5.0. These describe the selection environment;
+they are not an additional installation requirement.
+
+Large files are stored under the Git-ignored `data/reference_panels/airway_v1/`
+directory. `raw/` contains the downloaded genomes and taxonomy; `prepared/`
+contains the linked genome/V4 references. A selection run can also create
+`metadata/`, `cache/` and `screening.jsonl`, recording source catalogues, candidate
+downloads and the reasons candidates were accepted or excluded.
+
+Use the recorded accessions when repeating a study. Choosing genomes from a newer
+NCBI catalogue creates a different reference collection, even with the same
+selection settings. Keep local copies if long-term availability matters: the
+original files may not remain downloadable indefinitely. See the
+[NCBI genome-download documentation](https://www.ncbi.nlm.nih.gov/genome/doc/ftpfaq/)
+for details of the source files.
+
+## Choosing a different set of genomes
+
+For most users, downloading the existing collection or providing their own
+references is sufficient. To repeat the genome-selection procedure with different
+settings, use the developer script's `build` command with a new collection ID and
+output directory. It refuses to replace an existing completed collection.
+Reproducing the original selection also requires the saved NCBI catalogue and
+taxonomy versions; downloading the already selected genomes does not.
+
+## What does the literature support?
+
+The three studies below informed the choice of airway-associated genera and
+potential contaminants. The additional readings provide ecological context;
+they were documented after selection and did not change the chosen genomes or
+their simulated abundances. Genus membership alone does not establish airway
+residence, pathogenicity or reagent origin for an individual species or strain.
+
+## Studies used to choose the reference organisms
 
 | Source | DOI | Supported choice and evidence level |
 | --- | --- | --- |
@@ -174,18 +178,18 @@ accessions, selection policy, or simulated abundances.
 | Marshall EA et al. (2022). *Distinct bronchial microbiome precedes clinical diagnosis of lung cancer*. Molecular Cancer 21:68. | [10.1186/s12943-022-01544-6](https://doi.org/10.1186/s12943-022-01544-6) | Bronchial-brushing evidence relevant to a lung-cancer study; **Veillonella**, **Streptococcus**, and **Prevotella** feature prominently. Does not establish every prioritized genus or prescribe the synthetic case/control effects. |
 | Salter SJ et al. (2014). *Reagent and laboratory contamination can critically impact sequence-based microbiome analyses*. BMC Biology 12:87. | [10.1186/s12915-014-0087-z](https://doi.org/10.1186/s12915-014-0087-z) | Table 1 documents **Ralstonia**, **Bradyrhizobium**, **Sphingomonas**, **Methylobacterium**, and **Microbacterium** in blank controls. Direct genus-level support for the contaminant candidate list; supports modelling contamination in both amplicon and shotgun data. |
 
-## Supplementary ecological context
+## Further reading on airway microbial communities
 
 | Source | DOI | Relevance and limitation |
 | --- | --- | --- |
 | Bassis CM et al. (2015). Study of upper-respiratory microbiotas as sources of lung and gastric microbiotas in healthy people. mBio 6:e00037-15. | [10.1128/mBio.00037-15](https://doi.org/10.1128/mBio.00037-15) | Supports the oral-to-lung immigration rationale; oral and lung communities overlap but are not identical. |
-| Dickson RP et al. (2015). *Spatial Variation in the Healthy Human Lung Microbiome and the Adapted Island Model of Lung Biogeography*. Annals of the American Thoracic Society 12:821–830. | [10.1513/AnnalsATS.201501-029OC](https://doi.org/10.1513/AnnalsATS.201501-029OC) | Supports oral-associated taxa and lung biogeography, including **Prevotella**, **Veillonella**, and **Streptococcus**. Not a genome-panel prescription. |
+| Dickson RP et al. (2015). *Spatial Variation in the Healthy Human Lung Microbiome and the Adapted Island Model of Lung Biogeography*. Annals of the American Thoracic Society 12:821–830. | [10.1513/AnnalsATS.201501-029OC](https://doi.org/10.1513/AnnalsATS.201501-029OC) | Supports oral-associated taxa and lung biogeography, including **Prevotella**, **Veillonella**, and **Streptococcus**. Not a list of genomes to include. |
 | Dewhirst FE et al. (2010). *The Human Oral Microbiome*. Journal of Bacteriology 192:5002–5017. | [10.1128/JB.00542-10](https://doi.org/10.1128/JB.00542-10) | Primary taxonomic resource supporting the oral-community component. Oral occurrence alone is not evidence of lower-airway residence. |
 | Fodor AA et al. (2012). Longitudinal study of adult cystic-fibrosis airway microbiota and antibiotic treatment. PLOS ONE 7:e45001. | [10.1371/journal.pone.0045001](https://doi.org/10.1371/journal.pone.0045001) | Observed **Pseudomonas**, **Burkholderia**, **Prevotella**, **Streptococcus**, **Rothia**, **Veillonella**, **Actinomyces**, and **Granulicatella**. Supports inclusion of disease-associated airway diversity, not a healthy-lung or lung-cancer abundance model. |
 
-## Exact contaminant representatives
+## Genomes used to simulate contamination
 
-| Frozen assembly | Reference organism | Evidence used |
+| NCBI assembly accession | Reference organism | Evidence used |
 | --- | --- | --- |
 | `GCF_053592855.1` | Bradyrhizobium sp. T-1 | Salter et al., genus-level blank-control evidence. |
 | `GCF_024925465.1` | Ralstonia pseudosolanacearum | Salter et al., genus-level blank-control evidence. |
@@ -194,7 +198,7 @@ accessions, selection policy, or simulated abundances.
 These are computational representatives of contaminant genera. The cited paper
 does **not** identify these exact strains/assemblies as reagent contaminants.
 No strain-level reagent-isolation claim is made. In this benchmark their
-`reference_role=contaminant` designation reserves them for injection and controls
+`reference_role=contaminant` designation reserves them for simulated contamination and extraction controls
 and excludes them from biological community sampling.
 
 ## Limits on interpretation
@@ -204,12 +208,12 @@ and excludes them from biological community sampling.
 - Several genera can occur both biologically and as technical contamination.
   A simulated role is ground truth for this experiment, not a universal label
   for interpreting real samples.
-- The papers do not specify the panel size, deterministic selection seed,
-  per-genus caps, or one-to-one V4/genome restriction. Those are software-design
+- The papers do not specify the number of reference genomes, random seed,
+  maximum genomes per genus, or the requirement for a unique V4 sequence per genome. Those are software-design
   decisions documented separately in the policy.
 - Abundance, prevalence, contamination intensity, and disease associations are
   simulated settings, not estimates fitted to these publications. The inherited
   SparseDOSSA2 template remains `Stool`.
-- Cite the ecological papers for the rationale, and cite/report the frozen
-  accessions and lock SHA-256 for the exact sequence inputs. These serve different
-  provenance purposes.
+- Cite the ecological papers for the rationale, and cite/report the recorded
+  accessions and the checksum of the genome inventory for the exact sequence inputs. These serve different
+  reproducibility purposes.
