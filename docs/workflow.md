@@ -43,7 +43,7 @@ resource flags for Slurm (see the [command-line guide](cli.md)). This is not cur
 per-sample distributed simulation DAG: multiple samples are generated inside
 one simulation task. Compute nodes must see the environment and work directory.
 
-## Scientific data flow
+## Data workflow
 
 ```mermaid
 flowchart TB
