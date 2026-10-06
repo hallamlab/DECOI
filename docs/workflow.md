@@ -33,7 +33,7 @@ flowchart TB
 the study, and optionally validates amplicons. Genome-first inputs are required
 for sequence-verified shared genome linkage; a SILVA-derived run can also use an
 explicit prelinked WGS reference bundle. The frozen airway panel is an optional
-reference selection, not a prerequisite for the small reviewer test.
+reference selection, not a prerequisite for the small installation test.
 
 Use `decoi run --threads` to request the CPUs used by amplicon and WGS read simulation.
 The simulation process reserves those CPUs in Nextflow. Reference preparation

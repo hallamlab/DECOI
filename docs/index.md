@@ -22,8 +22,9 @@ recorded in ground-truth tables. WGS uses genome-linked community abundances,
 with marker-copy and genome-length adjustments; amplicon-only artifacts stay
 with the amplicon assay.
 
-Start with the tiny reviewer demo, use the supplied airway reference panel, or
-provide your own references and study design. Current support covers V4 amplicons
+Follow the [quickstart](installation.md) and run the [tiny test](reviewer-test.md)
+to get started. You can then use the supplied airway reference panel or provide
+your own references and study design. Current support covers V4 amplicons
 and paired short-read WGS with the InSilicoSeq MiSeq model, run locally or through
 Nextflow with a Slurm executor. Optional DADA2 validation is available for
 amplicons. The full paired airway demo has passed generation and output-consistency
@@ -35,7 +36,8 @@ constructed for testing and do not represent a model of microbial metabolism.
 :class: decoi-primary-workflow
 ```
 
-Start with [installation](installation.md) and the [reviewer test](reviewer-test.md).
+[Quickstart](installation.md) · [Run the test](reviewer-test.md) · [Command-line guide](cli.md)
+
 The detailed [workflow](workflow.md) explains execution, assay linkage and data flow.
 
 ```{toctree}

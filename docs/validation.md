@@ -47,4 +47,4 @@ and manifest agreed with the outputs.
 This demonstrates successful full-dataset generation and internal consistency.
 DADA2 validation was disabled; this run does not establish downstream ASV recovery,
 biological realism, or full-study Slurm performance. The Nextflow route was tested
-separately with the small paired reviewer dataset, including checkpoint reuse.
+separately with the small paired test dataset, including checkpoint reuse.

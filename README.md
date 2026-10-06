@@ -6,7 +6,7 @@ artifacts and sequence provenance for workflow and statistical-method testing.
 The chemistry is correlated by construction, not a mechanistic metabolic model.
 
 [Full user guide](https://hallamlab-decoi.readthedocs.io/en/latest/) ·
-[Reviewer test](https://hallamlab-decoi.readthedocs.io/en/latest/reviewer-test.html) ·
+[Test](https://hallamlab-decoi.readthedocs.io/en/latest/reviewer-test.html) ·
 [Issues and feature requests](https://github.com/hallamlab/DECOI/issues)
 
 ![DECOI workflow](docs/assets/workflow-brief.svg)
