@@ -22,7 +22,7 @@ recorded in ground-truth tables. WGS uses genome-linked community abundances,
 with marker-copy and genome-length adjustments; amplicon-only artifacts stay
 with the amplicon assay.
 
-Follow the [quickstart](installation.md) and run the [tiny test](reviewer-test.md)
+Follow the [quickstart](installation.md) and run the [tiny test](test.md)
 to get started. You can then use the supplied [airway mock microbial community](reference-panel.md) or provide
 your own references and study design. Current support covers V4 amplicons
 and paired short-read WGS with the InSilicoSeq MiSeq model, run locally or through
@@ -36,7 +36,7 @@ constructed for testing and do not represent a model of microbial metabolism.
 :class: decoi-primary-workflow
 ```
 
-[Quickstart](installation.md) · [Run the test](reviewer-test.md) · [Command-line guide](cli.md)
+[Quickstart](installation.md) · [Run the test](test.md) · [Command-line guide](cli.md)
 
 The detailed [workflow](workflow.md) explains execution, assay linkage and data flow.
 
@@ -45,7 +45,7 @@ The detailed [workflow](workflow.md) explains execution, assay linkage and data 
 
 installation
 cli
-reviewer-test
+test
 inputs
 configuration
 workflow

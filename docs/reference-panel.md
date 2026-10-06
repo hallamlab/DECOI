@@ -18,7 +18,7 @@ abundances are generated using the SparseDOSSA2 `Stool` template with the effect
 specified in the configuration. They have not been fitted to airway observations.
 
 To use these genomes, follow the [full mock-community setup](paired-study.md).
-The [tiny installation test](reviewer-test.md) uses synthetic sequences instead
+The [tiny installation test](test.md) uses synthetic sequences instead
 and does not require this download.
 
 ## Which organisms are included, and why?

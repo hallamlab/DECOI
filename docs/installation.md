@@ -122,6 +122,6 @@ Run the small test in a fresh output directory to verify an update. If dependenc
 requirements change, follow the release instructions for updating the supporting
 environment too. The environment YAML is not an exact package lock.
 
-Continue with the [test output guide](reviewer-test.md), [CLI guide](cli.md), or
+Continue with the [test output guide](test.md), [CLI guide](cli.md), or
 [full paired airway study](paired-study.md). See [reproducibility](reproducibility.md)
 before comparing simulations between machines.

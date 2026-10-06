@@ -185,8 +185,8 @@ def launch(args, root):
 
 
 def launch_locked(args, root, out, state):
-    reviewer = args.command == 'test'
-    if reviewer:
+    test = args.command == 'test'
+    if test:
         inputs = out/'inputs'
         if not inputs.exists():
             subprocess.run([sys.executable, str(root/'scripts/create_paired_smoke.py'), str(inputs), '--genome-first'], check=True)
@@ -224,10 +224,10 @@ def launch_locked(args, root, out, state):
             raise ValueError(f'Missing {name}: {path}')
     available = len(os.sched_getaffinity(0)) if hasattr(os, 'sched_getaffinity') else (os.cpu_count() or 1)
     budget = args.max_cpus or available
-    threads = args.threads or (1 if reviewer else 8)
+    threads = args.threads or (1 if test else 8)
     if args.executor == 'local':
         threads = min(threads, budget)
-    mem = args.memory or ('4 GB' if reviewer else '32 GB')
+    mem = args.memory or ('4 GB' if test else '32 GB')
     if args.max_memory:
         def size(value):
             number, unit = re.fullmatch(r'([\d.]+)\s*(MB|GB|TB)', value).groups()
@@ -236,7 +236,7 @@ def launch_locked(args, root, out, state):
             raise ValueError('--memory exceeds --max_memory; lower the per-task request or raise the local budget.')
     cfg.setdefault('fastq', {})['cpus'] = threads
     cfg.setdefault('wgs', {})['cpus'] = threads
-    dada2 = bool(getattr(args, 'run_dada2', False) or (not reviewer and cfg.get('validation', {}).get('run_dada2')))
+    dada2 = bool(getattr(args, 'run_dada2', False) or (not test and cfg.get('validation', {}).get('run_dada2')))
     tool_checks(dada2=dada2)
     run_id = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')+'-'+uuid.uuid4().hex[:8]
     logs = out/'logs'/run_id; logs.mkdir(parents=True)
