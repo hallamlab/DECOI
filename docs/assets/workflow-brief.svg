@@ -30,7 +30,7 @@
 <text x="410" y="300" font-size="21" text-anchor="middle"><tspan x="410" dy="0">SILVA or</tspan><tspan x="410" dy="24.78">verified genomes</tspan></text>
 <text x="730" y="300" font-size="23" text-anchor="middle"><tspan x="730" dy="0">Extract V4 markers;</tspan><tspan x="730" dy="27.14">link taxonomy and genomes</tspan></text>
 <text x="1060" y="300" font-size="22" text-anchor="middle"><tspan x="1060" dy="0">Reference sequences</tspan><tspan x="1060" dy="25.96">and identity registry</tspan></text>
-<text x="730" y="408" font-size="19" text-anchor="middle"><tspan x="730" dy="0">Primer matching / Cutadapt • Deduplication • Checksums and marker-copy links</tspan></text>
+<text x="730" y="402" font-size="19" text-anchor="middle"><tspan x="730" dy="0">Cutadapt / Biopython</tspan></text>
 <path class="wire" d="M284.5 365 L396.5 365"/>
 <path class="wire" d="M423.5 365 L714.879 365"/>
 <path class="wire" d="M745.121 365 L1046.5 365"/>
@@ -44,7 +44,7 @@
 <text x="410" y="495" font-size="21" text-anchor="middle"><tspan x="410" dy="0">Study design and</tspan><tspan x="410" dy="24.78">reference identities</tspan></text>
 <text x="730" y="495" font-size="23" text-anchor="middle"><tspan x="730" dy="0">Simulate communities;</tspan><tspan x="730" dy="27.14">apply biological effects</tspan></text>
 <text x="1060" y="495" font-size="22" text-anchor="middle"><tspan x="1060" dy="0">Shared abundances</tspan><tspan x="1060" dy="25.96">and chemical truth</tspan></text>
-<text x="730" y="603" font-size="19" text-anchor="middle"><tspan x="730" dy="0">SparseDOSSA2 • Cohort / network / batch effects</tspan><tspan x="730" dy="22.42">Constructed ASV–compound associations, noise and zeros</tspan></text>
+<text x="730" y="597" font-size="19" text-anchor="middle"><tspan x="730" dy="0">SparseDOSSA2 / NumPy</tspan></text>
 <path class="wire" d="M284.5 560 L396.5 560"/>
 <path class="wire" d="M423.5 560 L714.879 560"/>
 <path class="wire" d="M745.121 560 L1046.5 560"/>
@@ -58,7 +58,7 @@
 <text x="410" y="690" font-size="21" text-anchor="middle"><tspan x="410" dy="0">Shared pre-PCR</tspan><tspan x="410" dy="24.78">biological state</tspan></text>
 <text x="730" y="690" font-size="23" text-anchor="middle"><tspan x="730" dy="0">Add assay-specific effects</tspan><tspan x="730" dy="27.14">and control allocations</tspan></text>
 <text x="1060" y="690" font-size="22" text-anchor="middle"><tspan x="1060" dy="0">Amplicon and</tspan><tspan x="1060" dy="25.96">optional WGS truth</tspan></text>
-<text x="730" y="798" font-size="19" text-anchor="middle"><tspan x="730" dy="0">PCR bias • Contaminants • Mitochondrial fixtures • Chimeras</tspan><tspan x="730" dy="22.42">WGS: marker-copy correction and genome-length weighting</tspan></text>
+<text x="730" y="792" font-size="19" text-anchor="middle"><tspan x="730" dy="0">DECOI / NumPy</tspan></text>
 <path class="wire" d="M284.5 755 L396.5 755"/>
 <path class="wire" d="M423.5 755 L714.879 755"/>
 <path class="wire" d="M745.121 755 L1046.5 755"/>
@@ -70,9 +70,9 @@
 <path d="M730 937 L743 950 L730 963 L717 950Z" fill="#F5F5F5" stroke="#666666" stroke-width="3"/>
 <circle cx="1060" cy="950" r="12" fill="#D5E8D4" stroke="#82B366" stroke-width="3"/>
 <text x="410" y="885" font-size="21" text-anchor="middle"><tspan x="410" dy="0">Assay references</tspan><tspan x="410" dy="24.78">and read allocations</tspan></text>
-<text x="730" y="885" font-size="23" text-anchor="middle"><tspan x="730" dy="0">Simulate paired reads;</tspan><tspan x="730" dy="27.14">check requested counts</tspan></text>
+<text x="730" y="885" font-size="23" text-anchor="middle"><tspan x="730" dy="0">Simulate paired reads;</tspan><tspan x="730" dy="27.14">optional amplicon validation</tspan></text>
 <text x="1060" y="885" font-size="22" text-anchor="middle"><tspan x="1060" dy="0">Paired FASTQs and</tspan><tspan x="1060" dy="25.96">validation tables</tspan></text>
-<text x="730" y="993" font-size="19" text-anchor="middle"><tspan x="730" dy="0">InSilicoSeq • R1 / R2 count checks</tspan><tspan x="730" dy="22.42">Optional amplicon validation: Cutadapt + DADA2</tspan></text>
+<text x="730" y="987" font-size="19" text-anchor="middle"><tspan x="730" dy="0">InSilicoSeq / DADA2</tspan></text>
 <path class="wire" d="M284.5 950 L396.5 950"/>
 <path class="wire" d="M423.5 950 L714.879 950"/>
 <path class="wire" d="M745.121 950 L1046.5 950"/>
@@ -86,7 +86,7 @@
 <text x="410" y="1080" font-size="21" text-anchor="middle"><tspan x="410" dy="0">Assays, metadata</tspan><tspan x="410" dy="24.78">and recorded effects</tspan></text>
 <text x="730" y="1080" font-size="23" text-anchor="middle"><tspan x="730" dy="0">Assemble the dataset</tspan><tspan x="730" dy="27.14">and run summary</tspan></text>
 <text x="1060" y="1080" font-size="22" text-anchor="middle"><tspan x="1060" dy="0">Report, manifests</tspan><tspan x="1060" dy="25.96">and truth tables</tspan></text>
-<text x="730" y="1188" font-size="19" text-anchor="middle"><tspan x="730" dy="0">Source hashes • Configuration • Random seeds • Software versions</tspan></text>
+<text x="730" y="1182" font-size="19" text-anchor="middle"><tspan x="730" dy="0">DECOI / pandas</tspan></text>
 <path class="wire" d="M284.5 1145 L396.5 1145"/>
 <path class="wire" d="M423.5 1145 L714.879 1145"/>
 <path class="wire" d="M745.121 1145 L1046.5 1145"/>

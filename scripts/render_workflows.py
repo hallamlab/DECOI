@@ -52,7 +52,7 @@ def draw(name, rows):
         text(x, 157, label, 18)
         node(x, 198, kind)
 
-    for i, (title, source, compute, output, details) in enumerate(rows):
+    for i, (title, source, compute, output, tool) in enumerate(rows):
         y = 365 + i * 195
         text(125, y-10, title, 23)
         node(270, y, 'module')
@@ -63,7 +63,7 @@ def draw(name, rows):
         text(410, y-65, source, 21)
         text(730, y-65, compute, 23)
         text(1060, y-65, output, 22)
-        text(730, y+43, details, 19)
+        text(730, y+37, tool, 19)
         wire(284.5, y, 396.5, y)
         wire(423.5, y, 714.879, y)
         wire(745.121, y, 1046.5, y)
@@ -77,23 +77,71 @@ def draw(name, rows):
 
 
 def main():
-    draw('workflow-brief.svg', [
-        (['Reference', 'preparation'], ['SILVA or', 'verified genomes'], ['Extract V4 markers;', 'link taxonomy and genomes'], ['Reference sequences', 'and identity registry'], ['Primer matching / Cutadapt • Deduplication • Checksums and marker-copy links']),
-        (['Biological', 'community'], ['Study design and', 'reference identities'], ['Simulate communities;', 'apply biological effects'], ['Shared abundances', 'and chemical truth'], ['SparseDOSSA2 • Cohort / network / batch effects', 'Constructed ASV–compound associations, noise and zeros']),
-        (['Assay effects', 'and controls'], ['Shared pre-PCR', 'biological state'], ['Add assay-specific effects', 'and control allocations'], ['Amplicon and', 'optional WGS truth'], ['PCR bias • Contaminants • Mitochondrial fixtures • Chimeras', 'WGS: marker-copy correction and genome-length weighting']),
-        (['Read simulation', 'and validation'], ['Assay references', 'and read allocations'], ['Simulate paired reads;', 'check requested counts'], ['Paired FASTQs and', 'validation tables'], ['InSilicoSeq • R1 / R2 count checks', 'Optional amplicon validation: Cutadapt + DADA2']),
-        (['Results and', 'reproducibility'], ['Assays, metadata', 'and recorded effects'], ['Assemble the dataset', 'and run summary'], ['Report, manifests', 'and truth tables'], ['Source hashes • Configuration • Random seeds • Software versions'])
-    ])
-    draw('workflow-main.svg', [
-        (['Reference', 'identity'], ['SILVA sequences', 'or genome FASTAs'], ['Extract primer-defined V4;', 'deduplicate and link sources'], ['V4 sequences and', 'reference registry'], ['Cutadapt for SILVA / exact primer matching in genomes', 'Taxonomy • Source hashes • Marker loci and copy numbers']),
-        (['Study', 'layout'], ['Study design and', 'reference identities'], ['Expand sample metadata;', 'simulate communities'], ['Sample metadata and', 'initial abundances'], ['Cohorts • Participants • Paired samples', 'SparseDOSSA2 community abundance profiles']),
-        (['Biological', 'effects'], ['Initial community', 'abundance profiles'], ['Apply group, network', 'and microbial batch effects'], ['Shared pre-PCR', 'biological state'], ['Differential abundance • Microbial modules • Batch structure', 'Record effects before assay-specific transformations']),
-        (['Chemical', 'measurements'], ['Shared biological', 'abundances'], ['Construct signed links;', 'add noise and batch effects'], ['Chemical tables and', 'association truth'], ['ASV–compound coefficients • Zeros • Chemical batch effects', 'Correlations by construction; not mechanistic metabolism']),
-        (['Amplicon', 'artifacts'], ['Biological state and', 'artifact settings'], ['Apply PCR bias;', 'inject artifacts and controls'], ['Amplicon truth and', 'read allocations'], ['Contaminants • Mitochondrial marker fixtures • Chimeras', 'Extraction blanks • Recorded artifact identities']),
-        (['Matched WGS', '(optional)'], ['Pre-PCR state and', 'linked genomes'], ['Adjust marker copies', 'and genome lengths'], ['WGS truth and', 'read allocations'], ['Use contaminant / control allocations', 'Exclude amplicon-only chimeras and mitochondrial marker fixtures']),
-        (['Sequence', 'and validate'], ['References and', 'assay allocations'], ['Simulate paired reads;', 'verify R1 / R2 counts'], ['FASTQs and', 'validation results'], ['InSilicoSeq for both assays • Exact depth checks', 'Optional DADA2: trim, filter, denoise, merge and remove chimeras']),
-        (['Dataset and', 'provenance'], ['Assays and all', 'ground-truth tables'], ['Compile metadata,', 'manifests and run report'], ['Reproducible study', 'and HTML report'], ['Reference fixtures • Configuration • Seeds • Hashes • Software versions'])
-    ])
+    draw('workflow-brief.svg', [(['Reference', 'preparation'],
+  ['SILVA or', 'verified genomes'],
+  ['Extract V4 markers;', 'link taxonomy and genomes'],
+  ['Reference sequences', 'and identity registry'],
+  'Cutadapt / Biopython'),
+ (['Biological', 'community'],
+  ['Study design and', 'reference identities'],
+  ['Simulate communities;', 'apply biological effects'],
+  ['Shared abundances', 'and chemical truth'],
+  'SparseDOSSA2 / NumPy'),
+ (['Assay effects', 'and controls'],
+  ['Shared pre-PCR', 'biological state'],
+  ['Add assay-specific effects', 'and control allocations'],
+  ['Amplicon and', 'optional WGS truth'],
+  'DECOI / NumPy'),
+ (['Read simulation', 'and validation'],
+  ['Assay references', 'and read allocations'],
+  ['Simulate paired reads;', 'optional amplicon validation'],
+  ['Paired FASTQs and', 'validation tables'],
+  'InSilicoSeq / DADA2'),
+ (['Results and', 'reproducibility'],
+  ['Assays, metadata', 'and recorded effects'],
+  ['Assemble the dataset', 'and run summary'],
+  ['Report, manifests', 'and truth tables'],
+  'DECOI / pandas')])
+    draw('workflow-main.svg', [(['Reference', 'identity'],
+  ['SILVA sequences', 'or genome FASTAs'],
+  ['Extract primer-defined V4;', 'deduplicate and link sources'],
+  ['V4 sequences and', 'reference registry'],
+  'Cutadapt / Biopython'),
+ (['Study', 'layout'],
+  ['Study design and', 'reference identities'],
+  ['Expand sample metadata;', 'simulate communities'],
+  ['Sample metadata and', 'initial abundances'],
+  'SparseDOSSA2'),
+ (['Biological', 'effects'],
+  ['Initial community', 'abundance profiles'],
+  ['Apply group, network', 'and microbial batch effects'],
+  ['Shared pre-PCR', 'biological state'],
+  'DECOI / NumPy'),
+ (['Chemical', 'measurements'],
+  ['Shared biological', 'abundances'],
+  ['Construct signed links;', 'add noise and batch effects'],
+  ['Chemical tables and', 'association truth'],
+  'DECOI / NumPy'),
+ (['Amplicon', 'artifacts'],
+  ['Biological state and', 'artifact settings'],
+  ['Apply PCR bias;', 'inject artifacts and controls'],
+  ['Amplicon truth and', 'read allocations'],
+  'DECOI / NumPy'),
+ (['Matched WGS', '(optional)'],
+  ['Pre-PCR state and', 'linked genomes'],
+  ['Adjust marker copies', 'and genome lengths'],
+  ['WGS truth and', 'read allocations'],
+  'DECOI / NumPy'),
+ (['Sequence', 'and validate'],
+  ['References and', 'assay allocations'],
+  ['Simulate paired reads;', 'optional amplicon validation'],
+  ['FASTQs and', 'validation results'],
+  'InSilicoSeq / DADA2'),
+ (['Dataset and', 'provenance'],
+  ['Assays and all', 'ground-truth tables'],
+  ['Compile metadata,', 'manifests and run report'],
+  ['Reproducible study', 'and HTML report'],
+  'DECOI / pandas')])
 
 
 if __name__ == '__main__':
