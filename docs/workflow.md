@@ -1,12 +1,15 @@
 # Workflow, architecture and data flow
 
-The diagrams describe the implemented software. Numbered modules show conceptual
-progression; optional DADA2 is a downstream validation branch. Simulation of a
-study is one Nextflow task containing the assay generation logic.
-
-```{image} assets/workflow-main.svg
-:alt: Detailed DECOI reference, biological state, assay artifacts, sequencing and output flow
+```{container} decoi-primary-workflow
+[![Detailed DECOI reference, biological state, assay artifacts, sequencing and output flow](assets/workflow-main.svg)](assets/workflow-main.svg)
 ```
+
+[Open full-size SVG](assets/workflow-main.svg) · [Brief overview](index.md)
+
+Process names appear above compute diamonds; the main tools and libraries appear
+below them. The supporting diagrams expand execution and data flow.
+Numbered modules show conceptual progression; optional DADA2 is a downstream
+validation branch. A study is simulated within one Nextflow task.
 
 ## Execution architecture
 
