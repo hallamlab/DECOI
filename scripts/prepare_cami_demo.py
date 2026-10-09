@@ -179,7 +179,7 @@ def configure(prepared, recipe):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('-i','--input',type=Path,required=True,help='Local mock_2022 directory')
+    p.add_argument('-i','--input',type=Path,required=True,help='Public CAMI download directory or legacy local mock_2022 directory')
     p.add_argument('-o','--output',type=Path,required=True,help='New study-input directory')
     p.add_argument('--recipe',type=Path,default=ROOT/'study/cami_patient_showcase.yaml')
     p.add_argument('--threads',type=int,default=4)

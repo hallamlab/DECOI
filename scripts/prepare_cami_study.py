@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prepare a CAMI2-derived amplicon study from local original genome references."""
+"""Prepare a CAMI2-derived amplicon study from public CAMI bundles or local original genome references."""
 import argparse
 from collections import Counter, defaultdict
 from concurrent.futures import ProcessPoolExecutor
@@ -17,6 +17,8 @@ from Bio.SeqRecord import SeqRecord
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from genome_reference import extract_markers, RANKS
+from scripts.download_cami import SITE_SAMPLES
+from scripts.cami_taxonomy import lineages as taxon_lineages
 
 SITES = ('Airways', 'Gastrointestinal', 'Oral', 'Skin', 'Urogenital')
 FORWARD = 'GTGYCAGCMGCCGCGGTAA'
@@ -47,18 +49,43 @@ def prepare(source, output, threads=4):
     if output.exists():
         raise ValueError('Choose a new preparation directory; existing inputs are never overwritten')
     compositions = {}; sources = {}; taxonomy = {}; source_files = set(); samples = []
+    public = (source/'airskinurogenital').is_dir() or (source/'gastrooral').is_dir()
+    public_taxonomy = {}
+    if public:
+        taxdump = source/'ncbi-taxonomy_20170222.tar.gz'
+        if not taxdump.is_file():
+            raise ValueError('Public CAMI inputs require ncbi-taxonomy_20170222.tar.gz; run scripts/download_cami.py')
+        for block in sorted({block for block, _ in SITE_SAMPLES.values()}):
+            with (source/block/'metadata.tsv').open() as handle:
+                public_taxonomy[block] = {row['genome_ID']: row['NCBI_ID']
+                                          for row in csv.DictReader(handle, delimiter='\t')}
+        resolved = taxon_lineages(taxdump, {t for values in public_taxonomy.values() for t in values.values()})
+        source_files.add(taxdump)
     # Preflight all original genome references before creating output.
     for site in SITES:
-        short = source/'MetaGs'/f'CAMI_II_{site}'/'short_read'
-        sag = source/'SAGs'/f'CAMI_II_{site}'
-        mapping = dict(csv.reader((sag/'genome_to_id.tsv').open(), delimiter='\t'))
         ranks = {}
-        with (sag/'genome_taxa_info.tsv').open() as handle:
-            for row in csv.DictReader(handle, delimiter='\t'):
-                lineage = row['TAXPATHSN'].split('|')[:7]
-                ranks[row['_CAMI_genomeID']] = (lineage+['']*7)[:7]
-        tables = sorted(short.glob('abundance*.tsv'))
-        if not tables: raise ValueError(f'No abundance tables: {short}')
+        if public:
+            block, numbers = SITE_SAMPLES[site]
+            bundle = source/block
+            mapping_file = bundle/'genome_to_id.tsv'
+            genome_dir = bundle/'source_genomes'
+            tables = [bundle/f'abundance{number}.tsv' for number in numbers]
+            ranks = {gid: resolved[taxid] for gid, taxid in public_taxonomy[block].items()}
+            source_files.add(bundle/'metadata.tsv')
+        else:
+            short = source/'MetaGs'/f'CAMI_II_{site}'/'short_read'
+            sag = source/'SAGs'/f'CAMI_II_{site}'
+            mapping_file = sag/'genome_to_id.tsv'
+            genome_dir = sag/'fasta'
+            with (sag/'genome_taxa_info.tsv').open() as handle:
+                for row in csv.DictReader(handle, delimiter='\t'):
+                    lineage = row['TAXPATHSN'].split('|')[:7]
+                    ranks[row['_CAMI_genomeID']] = (lineage+['']*7)[:7]
+            source_files.add(sag/'genome_taxa_info.tsv')
+            tables = sorted(short.glob('abundance*.tsv'))
+        with mapping_file.open() as handle:
+            mapping = dict(csv.reader(handle, delimiter='\t'))
+        if not tables: raise ValueError(f'No abundance tables for {site}')
         for table in tables:
             sample = f'{site}_{table.stem.removeprefix("abundance")}'
             samples.append(dict(sample_id=sample, group=site, body_site=site, Type_Group=site))
@@ -69,7 +96,9 @@ def prepare(source, output, threads=4):
                     if not 0 <= value < float('inf'): raise ValueError(f'Invalid abundance: {table}: {gid}')
                     if not value: continue
                     key = f'{site}:{gid}'
-                    path = sag/'fasta'/Path(mapping[gid]).name
+                    path = genome_dir/Path(mapping[gid]).name
+                    if public and gid not in ranks:
+                        raise ValueError(f'Missing public genome taxonomy: {gid}')
                     if not path.is_file(): raise ValueError(f'Missing original genome: {path}')
                     sources[key] = path
                     taxonomy[key] = ranks.get(gid, ['']*7)
@@ -77,7 +106,12 @@ def prepare(source, output, threads=4):
             if not values: raise ValueError(f'Empty source composition: {table}')
             compositions[sample] = values
             source_files.add(table)
-        source_files.update([sag/'genome_to_id.tsv', sag/'genome_taxa_info.tsv'])
+        source_files.add(mapping_file)
+    if (source/'download_manifest.json').is_file():
+        source_files.add(source/'download_manifest.json')
+    for path in source_files:
+        if not path.is_file():
+            raise ValueError(f'Missing source metadata: {path}')
     # Identical accession filenames in site collections select the first local copy;
     # every selected source file is hashed and its exact path is recorded.
     chosen_paths = {}
@@ -130,7 +164,10 @@ def prepare(source, output, threads=4):
     pd.DataFrame(associations).to_csv(ref/'genome_marker_loci.tsv',sep='\t',index=False)
     pd.DataFrame(audits).to_csv(ref/'genome_selection.tsv',sep='\t',index=False)
     pd.DataFrame(retained).to_csv(ref/'sample_reference_retention.tsv',sep='\t',index=False)
-    metadata = dict(source_type='cami2_amplicon', n_unique_v4=len(sequences), n_samples=len(samples),
+    metadata = dict(source_type='cami2_amplicon',
+                    input_layout='public_cami_setup' if public else 'local_site_collection',
+                    public_downloads=json.loads((source/'download_manifest.json').read_text()) if (source/'download_manifest.json').is_file() else None,
+                    n_unique_v4=len(sequences), n_samples=len(samples),
                     primers=dict(forward=FORWARD,reverse=REVERSE),
                     abundance_basis='CAMI supplied genome abundance multiplied by exact primer-bounded allele copy count; renormalized over eligible loci',
                     source_files={str(p):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(source_files)},
