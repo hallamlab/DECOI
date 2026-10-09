@@ -1,0 +1,113 @@
+# Base simulation template for scripts/prepare_cami_study.py; run the generated config.yaml.
+seed: 42
+study_design_file: GENERATED_BY_PREPARE_CAMI
+reference:
+  forward_primer: GTGYCAGCMGCCGCGGTAA
+  reverse_primer: GGACTACNVGGGTWTCTAAT
+  min_length: 230
+  max_length: 310
+  source: prepared
+  output_dir: GENERATED_BY_PREPARE_CAMI
+simulation:
+  n_samples: 30
+  n_asvs: 0
+  median_read_depth: 30000
+  selection:
+    domains:
+    - Bacteria
+    - Archaea
+    min_taxonomy_ranks: 5
+  composition_source: reference_abundances
+chemistry:
+  compounds:
+  - acetone
+  - ethanol
+  - 2_3_butanedione
+  - dimethyl_sulfide
+  - acetate
+  - lactate
+  drivers_per_compound: 5
+  coefficient_sd: 0.75
+  min_abs_coefficient: 0.9
+  driver_min_prevalence: 0.05
+  noise_sd: 0.25
+  zero_inflation: 0.05
+  log_transform: true
+reference_fixtures:
+  mitochondria:
+    enabled: false
+    source_fasta: fixtures/human_mitochondrial_12s_NC_012920.1_1000-1250.fasta
+    expected_sequence_sha256: 1ada221849592524097e2f1f5f6230a6595dd67676412145f2bd11088fe54a0c
+    n_asvs: 1
+    prevalence: 0.5
+    mean_reads: 50
+artifacts:
+  group_differential_abundance:
+    enabled: false
+    group_columns:
+    - Type_Group
+    - Case
+    asvs_per_group: 6
+    log_fold_change_sd: 0.25
+    min_abs_log_fold_change: 2.5
+    candidate_min_prevalence: 0.6
+    disjoint_drivers: true
+  microbial_network:
+    enabled: false
+    n_modules: 4
+    asvs_per_module: 6
+    loading: 1.0
+    candidate_min_prevalence: 0.5
+  microbiome_batch_effect:
+    enabled: false
+    column: batch
+    asvs_per_batch: 10
+    log_fold_change: 1.25
+    direction: mixed
+  pcr_bias:
+    enabled: true
+    log_mean: 0.0
+    log_sd: 0.35
+  contaminants:
+    enabled: false
+    n_asvs: 3
+    prevalence: 0.45
+    mean_reads: 40
+  extraction_controls:
+    enabled: false
+    labels:
+    - PBS
+    - PBS_twz
+    - Negative_96
+    - Negative_man
+    contaminant_mean_reads: 600
+    background_mean_reads: 0.25
+    dna_conc:
+    - 0.02
+    - 0.04
+    - 0.06
+    - 0.08
+  chimeras:
+    enabled: false
+    n_chimeras: 5
+    fraction_of_reads: 0.02
+  chemistry_batch_effect:
+    enabled: false
+    sd: 0.25
+fastq:
+  simulator: insilicoseq
+  model: miseq
+  cpus: 8
+  gzip: true
+  include_primers: true
+  keep_iss_inputs: true
+  minimum_template_length: 350
+  readthrough_padding_sequence: AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
+validation:
+  run_dada2: false
+  trunc_len_f: 240
+  trunc_len_r: 200
+  max_ee_f: 2
+  max_ee_r: 2
+wgs:
+  enabled: false

@@ -214,9 +214,12 @@ def launch_locked(args, root, out, state):
     study = cfg.get('study_design_file')
     if not study:
         raise ValueError('Provide study_design_file in the configuration or --study.')
-    silva = None if genome else ref.get('dada2_silva_fasta')
+    prepared = ref.get('output_dir') if ref.get('source') == 'prepared' else None
+    if prepared and (genome or linked):
+        raise ValueError('Prepared references cannot be combined with genome overrides')
+    silva = None if genome or prepared else ref.get('dada2_silva_fasta')
     fixture = cfg.get('reference_fixtures', {}).get('mitochondria', {})
-    for name, path in [('study', study), ('genomes', genome), ('WGS reference', linked), ('SILVA', silva),
+    for name, path in [('prepared reference', prepared), ('study', study), ('genomes', genome), ('WGS reference', linked), ('SILVA', silva),
                        ('mitochondrial fixture', fixture.get('source_fasta') if fixture.get('enabled') else None)]:
         if path and any(c in str(path) for c in ["'", '\n', '\r']):
             raise ValueError(f'{name} path cannot contain quotes or newlines.')
@@ -242,7 +245,7 @@ def launch_locked(args, root, out, state):
     logs = out/'logs'/run_id; logs.mkdir(parents=True)
     resolved = state/'config.yaml'; save_stable(resolved, yaml.safe_dump(cfg, sort_keys=False))
     params = dict(config=str(resolved), study=study, genome_dir=genome, silva_fasta=silva,
-                  wgs_reference=linked, outdir=str(out), threads=threads, dada2_threads=threads, run_dada2=dada2)
+                  wgs_reference=linked, prepared_reference=prepared, outdir=str(out), threads=threads, dada2_threads=threads, run_dada2=dada2)
     validation = cfg.get('validation', {})
     for key, default in [('forward_primer', 'GTGYCAGCMGCCGCGGTAA'), ('reverse_primer', 'GGACTACNVGGGTWTCTAAT')]:
         value = ref.get(key, default)

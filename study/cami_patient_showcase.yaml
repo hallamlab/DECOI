@@ -1,0 +1,67 @@
+# Clinical labels are simulated for testing, not CAMI donor information.
+study_name: CAMI2_synthetic_patient_airway_oral_skin
+seed: 42
+sites:
+  Airways:
+    role: comparison
+  Oral:
+    role: comparison
+  Skin:
+    role: biological_control
+composition_log_sd: 0.35
+amplicon_read_pairs: 50000
+contaminant_asvs: 3
+extraction_blanks:
+- PBS
+- PBS_twz
+- Negative_96
+- Negative_man
+aspire:
+  comparison_groups:
+  - Airways
+  - Oral
+simulation_overrides:
+  reference_fixtures:
+    mitochondria:
+      enabled: true
+  artifacts:
+    extraction_controls:
+      contaminant_mean_reads:
+        PBS: 200
+        PBS_twz: 600
+        Negative_96: 4000
+        Negative_man: 8000
+    group_differential_abundance:
+      enabled: true
+      group_columns:
+      - body_site
+      - Case
+      - lung_status
+      asvs_per_group: 6
+      min_abs_log_fold_change: 1.0
+      log_fold_change_sd: 0.25
+      candidate_min_prevalence: 0.1
+    microbial_network:
+      enabled: true
+      n_modules: 4
+      asvs_per_module: 6
+      loading: 0.5
+      candidate_min_prevalence: 0.1
+    microbiome_batch_effect:
+      enabled: true
+      log_fold_change: 0.5
+    chemistry_batch_effect:
+      enabled: true
+    pcr_bias:
+      enabled: true
+    chimeras:
+      enabled: true
+      n_chimeras: 5
+      fraction_of_reads: 0.02
+  validation:
+    run_dada2: true
+clinical_design:
+  control_patients: 25
+  cancer_patients: 25
+  patient_log_sd: 0.35
+  sample_log_sd: 0.2

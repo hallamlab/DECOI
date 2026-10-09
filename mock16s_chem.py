@@ -121,7 +121,7 @@ def load_study_samples(cfg: dict) -> pd.DataFrame:
     path=cfg.get("study_design_file")
     if not path:
         n=int(cfg["simulation"]["n_samples"]); return pd.DataFrame({"sample_id":[f"sample_{i:03d}" for i in range(1,n+1)]})
-    study=yaml.safe_load(Path(path).read_text()); rows=[]
+    study=yaml.safe_load(Path(path).read_text()); rows=list(study.get("samples", []))
     for cohort in study.get("cohorts",[]):
         fixed=dict(cohort.get("metadata",{})); cohort_name=str(cohort["name"])
         metadata_cycle=list(cohort.get("participant_metadata_cycle",[]))
@@ -190,7 +190,7 @@ def apply_group_effects(counts,meta,cfg,rng):
     preferred=[aid for aid in ranked if prevalence[aid]>=min_prevalence]; candidates=preferred+[aid for aid in ranked if aid not in preferred]; used=set()
     for column in columns:
         if column not in meta: raise ValueError(f"Differential-abundance column not found in metadata: {column}")
-        for group in sorted(meta[column].unique()):
+        for group in sorted(meta[column].dropna().unique()):
             available=[aid for aid in candidates if not disjoint or aid not in used]
             if len(available)<n: raise ValueError(f"Only {len(available)} ASVs available for {n} disjoint drivers in {column}={group}")
             pool=available[:max(n,min(len(available),n*3))];drivers=rng.choice(np.asarray(pool),size=n,replace=False);used.update(drivers)
@@ -269,14 +269,24 @@ def add_extraction_controls(counts,meta,contaminant_ids,cfg,rng):
     if "DNA_conc" not in metadata: metadata["DNA_conc"]=(1.0+49.0*depths.rank(method="average",pct=True)).to_numpy()
     metadata["is_negative_control"]=False;metadata["is_positive_control"]=False;truth=[]
     if not settings.get("enabled",False): return out,metadata,pd.DataFrame(columns=["sample_id","control_type","total_reads","DNA_conc"])
-    labels=list(settings.get("labels",["PBS","PBS_twz","Negative_96","Negative_man"]));means=float(settings.get("contaminant_mean_reads",600));background=float(settings.get("background_mean_reads",0.25));dna=list(settings.get("dna_conc",[0.02,0.04,0.06,0.08]))
+    labels=list(settings.get("labels",["PBS","PBS_twz","Negative_96","Negative_man"]));means=settings.get("contaminant_mean_reads",600);background=float(settings.get("background_mean_reads",0.25));dna=list(settings.get("dna_conc",[0.02,0.04,0.06,0.08]))
     if not contaminant_ids: raise ValueError("extraction_controls requires simulated contaminant ASVs")
+    if len(set(labels)) != len(labels) or set(labels).intersection(out.columns):
+        raise ValueError("Extraction-control labels must be unique and separate from biological sample IDs")
+    if isinstance(means, dict) and set(means) != set(labels):
+        raise ValueError("contaminant_mean_reads mapping must contain exactly the extraction-control labels")
+    blank_means = [float(means[label] if isinstance(means, dict) else means) for label in labels]
+    if any(not np.isfinite(mean) or mean < 0 for mean in blank_means):
+        raise ValueError("Extraction-control contaminant means must be finite and nonnegative")
     biological=[x for x in out.index if x not in set(contaminant_ids)]
     for i,label in enumerate(labels):
-        values=pd.Series(0,index=out.index,dtype=int);values.loc[list(contaminant_ids)]=rng.poisson(means,len(contaminant_ids))
+        values=pd.Series(0,index=out.index,dtype=int);values.loc[list(contaminant_ids)]=rng.poisson(blank_means[i],len(contaminant_ids))
         if biological: values.loc[biological]=rng.poisson(background,len(biological))
-        out[label]=values;row={column:"" for column in metadata.columns};row.update({"sample_id":label,"group":"extraction_control","Participant_ID":label,"Case":"Control","Type_Group":"Control","disease_status":"control","site":"extraction_control","lung_status":"Control","batch":"control_plate","DNA_conc":float(dna[i%len(dna)]),"is_negative_control":True,"is_positive_control":False});metadata=pd.concat([metadata,pd.DataFrame([row])],ignore_index=True);truth.append((label,"negative",int(values.sum()),row["DNA_conc"]))
-    return out,metadata,pd.DataFrame(truth,columns=["sample_id","control_type","total_reads","DNA_conc"])
+        out[label]=values;row={column:"" for column in metadata.columns};row.update({"sample_id":label,"group":"extraction_control","Participant_ID":label,"Case":"Control","Type_Group":"Control","disease_status":"control","site":"extraction_control","lung_status":"Control","batch":"control_plate","DNA_conc":float(dna[i%len(dna)]),"is_negative_control":True,"is_positive_control":False})
+        for column,value in {"Sample":label,"body_site":"extraction_control","study_role":"extraction_control","is_biological_control":False,"include_primary_comparison":False}.items():
+            if column in metadata: row[column]=value
+        metadata=pd.concat([metadata,pd.DataFrame([row])],ignore_index=True);truth.append((label,"negative",int(values.sum()),row["DNA_conc"],blank_means[i],background))
+    return out,metadata,pd.DataFrame(truth,columns=["sample_id","control_type","total_reads","DNA_conc","contaminant_mean_reads","background_mean_reads"])
 
 
 def prepare_mitochondrial_features(cfg, outdir):
@@ -319,7 +329,7 @@ def add_mitochondrial_reads(counts, mitochondrial_ids, cfg, rng):
     for aid in mitochondrial_ids:
         values=[int(rng.poisson(mean)) if rng.random()<prevalence else 0 for _ in out.columns]
         out.loc[aid]=values; rows.append({"ASV_ID":aid,"configured_prevalence":prevalence,"configured_mean_reads":mean,"samples_present":sum(v>0 for v in values),"total_reads":sum(values)})
-    return out,pd.DataFrame(rows)
+    return out,pd.DataFrame(rows, columns=["ASV_ID", "configured_prevalence", "configured_mean_reads", "samples_present", "total_reads"])
 
 
 def make_chimeras(counts,seqs,cfg,rng):
@@ -441,7 +451,6 @@ def write_fastqs(counts,seqs,cfg,outdir):
 
 def write_reference_fixtures(outdir, seqs, contaminants, mitochondrial_ids):
     refs=outdir/"references";refs.mkdir(exist_ok=True);contaminant_ids=list(contaminants)
-    if not contaminant_ids: raise ValueError("A complete benchmark requires at least one simulated contaminant")
     with (refs/"contaminants.fasta").open("w") as handle:
         SeqIO.write([SeqRecord(Seq(seqs[x]),id=x,description="simulated_contaminant") for x in contaminant_ids],handle,"fasta")
     with (refs/"mitochondria.fasta").open("w") as handle:
@@ -468,6 +477,12 @@ def write_report(outdir,manifest):
                  "The table above reports amplicon counts. Shared sample links are in "
                  "<code>assay_manifest.tsv</code>; WGS composition and read-count truth are in "
                  "<code>wgs/</code>. Amplicon chimeras and mitochondrial marker fixtures are excluded from WGS.</p>")
+        if wgs.get("gold_standard", {}).get("enabled"):
+            details += ("<h2>Read-supported gold-standard contigs</h2><p>Reference sequence restricted to bases represented in simulated reads; "
+                        "uncovered gaps are never filled. These are ground-truth genome bins, not recovered MAGs. "
+                        "<a href='wgs/gold_standard/summary.tsv'>Sample summary</a> · "
+                        "<a href='wgs/gold_standard/mp_manifest.tsv'>MetaPathways input manifest</a>. "
+                        "Contigs, genome bins, coordinates and mapping tables are under <code>wgs/gold_standard/</code>.</p>")
         body=body.replace("</body>",details+"</body>")
     (outdir/"report.html").write_text(body)
 
@@ -494,7 +509,24 @@ def simulate(cfg,output):
             choose_asvs(cfg,tax,allseq,np.random.default_rng(0),n=int(cfg["simulation"]["n_asvs"]))
             if contaminant_settings.get("enabled",False):
                 choose_asvs(cfg,tax,allseq,np.random.default_rng(0),n=int(contaminant_settings.get("n_asvs",3)),role="contaminant")
-    chosen=choose_asvs(cfg,tax,allseq,rng);counts,rel=run_sparsedossa(cfg,output)
+    supplied = cfg['simulation'].get('composition_source') == 'reference_abundances'
+    if supplied:
+        if wgs_enabled:
+            raise ValueError('Reference-abundance studies currently support amplicons only')
+        weights = pd.read_csv(Path(cfg['reference']['output_dir'])/'amplicon_abundances.tsv', sep='\t', index_col=0)
+        if weights.index.duplicated().any() or set(weights.columns) != set(meta.sample_id) or not weights.index.isin(allseq).all():
+            raise ValueError('Reference abundances must have unique known ASVs and match study sample IDs')
+        weights = weights.loc[:, meta.sample_id]
+        if not np.isfinite(weights.to_numpy()).all() or (weights < 0).any().any() or (weights.sum() <= 0).any():
+            raise ValueError('Invalid reference abundances or a sample without eligible markers')
+        chosen = list(weights.index)
+        rel = weights.div(weights.sum())
+        depth = int(cfg['simulation']['median_read_depth'])
+        if depth < 1: raise ValueError('median_read_depth must be positive')
+        counts = pd.DataFrame({sample: rng.multinomial(depth, rel[sample].to_numpy()) for sample in rel}, index=chosen)
+        weights.to_csv(output/'ground_truth_source_amplicon_abundances.tsv', sep='\t')
+    else:
+        chosen=choose_asvs(cfg,tax,allseq,rng);counts,rel=run_sparsedossa(cfg,output)
     mitochondrial_ids,mitochondrial_seqs,mitochondrial_tax,mitochondrial_source_truth=prepare_mitochondrial_features(cfg,output)
     allseq.update(mitochondrial_seqs)
     if not mitochondrial_tax.empty: tax=pd.concat([tax,mitochondrial_tax],axis=0)
@@ -510,7 +542,7 @@ def simulate(cfg,output):
     for aid in final.index:
         kind="chimera" if aid in newseq else ("contaminant" if aid in contaminants else ("mitochondrial" if aid in mitochondrial_ids else "biological"))
         t=tax.loc[aid].to_dict() if aid in tax.index else {r:"" for r in RANKS}; rep=t.get("representative_reference_id","")
-        registry.append({"feature_uuid":stable_uuid("mock16s-chem-feature",aid),"ASV_ID":aid,"feature_type":kind,"sequence_sha256":hashlib.sha256(seqs[aid].encode()).hexdigest(),"v4_sequence":seqs[aid],"silva_representative":rep,**{r:t.get(r,"") for r in RANKS},"sparsedossa_feature":f"feature_{chosen.index(aid)+1:04d}" if aid in chosen else ""})
+        registry.append({"feature_uuid":stable_uuid("mock16s-chem-feature",aid),"ASV_ID":aid,"feature_type":kind,"sequence_sha256":hashlib.sha256(seqs[aid].encode()).hexdigest(),"v4_sequence":seqs[aid],"silva_representative":rep,**{r:t.get(r,"") for r in RANKS},"sparsedossa_feature":f"feature_{chosen.index(aid)+1:04d}" if aid in chosen and not supplied else ""})
     reg=pd.DataFrame(registry);reg.to_csv(output/"ground_truth_feature_registry.tsv",sep="\t",index=False)
     with (output/"asv_sequences.fasta").open("w") as h:SeqIO.write([SeqRecord(Seq(seqs[x]),id=x,description="") for x in final.index],h,"fasta")
     reg.set_index("ASV_ID")[[*RANKS,"silva_representative","feature_type"]].to_csv(output/"asv_taxonomy.tsv",sep="\t")

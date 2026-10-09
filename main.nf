@@ -8,6 +8,7 @@ params.silva_fasta = params.silva_fasta ?: null
 params.run_dada2 = params.run_dada2 ?: false
 params.dada2_threads = params.dada2_threads ?: 8
 params.wgs_reference = params.wgs_reference ?: null
+params.prepared_reference = params.prepared_reference ?: null
 params.genome_dir = params.genome_dir ?: null
 
 process PREPARE_GENOMES {
@@ -65,7 +66,9 @@ process VALIDATE_DADA2 {
 workflow {
   config_ch=Channel.value(file(params.config,checkIfExists:true)); study_ch=Channel.value(file(params.study,checkIfExists:true))
   if(params.genome_dir && params.wgs_reference) error 'Use either --genome_dir (raw genomes) or --wgs_reference (prelinked bundle), not both'
-  if(params.genome_dir){
+  if(params.prepared_reference){
+    reference_ch=Channel.value(file(params.prepared_reference,checkIfExists:true))
+  } else if(params.genome_dir){
     PREPARE_GENOMES(Channel.value(file(params.genome_dir,checkIfExists:true)),config_ch)
     reference_ch=PREPARE_GENOMES.out.reference
   } else {

@@ -36,7 +36,7 @@ constructed for testing and do not represent a model of microbial metabolism.
 :class: decoi-primary-workflow
 ```
 
-[Quickstart](installation.md) · [Run the test](test.md) · [Command-line guide](cli.md)
+[Quickstart](installation.md) · [Run the test](test.md) · [Larger CAMI/ASPIRE demonstration](cami-body-sites.md) · [Command-line guide](cli.md)
 
 The detailed [workflow](workflow.md) explains execution, assay linkage and data flow.
 
@@ -52,6 +52,7 @@ workflow
 outputs
 wgs
 paired-study
+cami-body-sites
 reference-panel
 validation
 reproducibility
