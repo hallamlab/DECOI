@@ -107,25 +107,6 @@ and passed directly to preparation, with `ncbi-taxonomy_20170222.tar.gz` at
 the same root. Preserve `download_manifest.json` when using
 the downloader so archive URLs and hashes travel into the prepared reference manifest.
 
-### Existing local collections
-
-The earlier local layout remains supported with `--input "$HOME/data/mock_2022"`:
-
-```text
-mock_2022/
-  MetaGs/CAMI_II_<site>/short_read/abundance*.tsv
-  SAGs/CAMI_II_<site>/genome_to_id.tsv
-  SAGs/CAMI_II_<site>/genome_taxa_info.tsv
-  SAGs/CAMI_II_<site>/fasta/<original genome FASTAs>
-```
-
-This layout requires all five sites: `Airways`, `Gastrointestinal`, `Oral`,
-`Skin` and `Urogenital`. Genome basenames must match the map, and the FASTAs
-must contain original reference genomes. Preparation checks referenced files
-and records genome hashes, allele coordinates and reference-retention audits.
-A different source collection can produce different ASVs and demo results;
-the historical ASPIRE benchmark retains its original provenance.
-
 ## Prepare the 50-patient study
 
 From the installed DECOI source checkout:
